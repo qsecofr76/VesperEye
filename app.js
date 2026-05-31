@@ -2872,9 +2872,10 @@ function fetchComets() {
     const pad = (n) => String(n).padStart(2, '0');
     const formattedDate = `${activeDate.getFullYear()}-${pad(activeDate.getMonth() + 1)}-${pad(activeDate.getDate())}`;
     
-    const url = `https://cobs.si/api/planner.api?lat=${state.lat}&long=${state.lon}&alt=${state.alt}&date=${formattedDate}&lim_mag=15`;
+    const targetUrl = `https://cobs.si/api/planner.api?lat=${state.lat}&long=${state.lon}&alt=${state.alt}&date=${formattedDate}&lim_mag=15`;
+    const proxyUrl = `https://api.codetabs.com/v1/proxy/?quest=${encodeURIComponent(targetUrl)}`;
     
-    fetch(url)
+    fetch(proxyUrl)
         .then(response => {
             if (!response.ok) {
                 throw new Error(`HTTP error! status: ${response.status}`);
