@@ -901,4 +901,20 @@ footer {
         height: 270px;
         max-width: 100%;
     }
+    
+    /* Responsività del planisfero su mobile */
+    #planisphereSection .compass-svg-wrapper {
+        width: 100% !important;
+        height: auto !important;
+        aspect-ratio: 1 !important;
+        max-width: 440px !important;
+    }
+}
+
+/* Stile specifico per ingrandire il Planisfero Celeste su desktop */
+#planisphereSection .compass-svg-wrapper {
+    width: 600px;
+    height: 600px;
+    max-width: 100%;
+    margin: 0 auto;
 }

@@ -60,7 +60,69 @@ const STARS = [
     { name: "Caph", ra: 0.152, dec: 59.15, mag: 2.3 },
     { name: "Gamma Cas", ra: 0.948, dec: 60.72, mag: 2.2 },
     { name: "Ruchbah", ra: 1.43, dec: 60.23, mag: 2.7 },
-    { name: "Segin", ra: 1.9, dec: 63.67, mag: 3.4 }
+    { name: "Segin", ra: 1.9, dec: 63.67, mag: 3.4 },
+
+    // Stelle di Orione
+    { name: "Bellatrix", ra: 5.418, dec: 6.349, mag: 1.64 },
+    { name: "Saiph", ra: 5.795, dec: -9.67, mag: 2.06 },
+    { name: "Alnitak", ra: 5.682, dec: -1.94, mag: 1.74 },
+    { name: "Alnilam", ra: 5.603, dec: -1.20, mag: 1.69 },
+    { name: "Mintaka", ra: 5.533, dec: -0.29, mag: 2.20 },
+
+    // Stelle del Cigno
+    { name: "Albireo", ra: 19.512, dec: 27.96, mag: 3.0 },
+    { name: "Sadr", ra: 20.373, dec: 40.26, mag: 2.2 },
+    { name: "Gienah", ra: 20.77, dec: 33.97, mag: 2.5 },
+    { name: "Fawaris", ra: 19.605, dec: 45.13, mag: 2.9 },
+
+    // Stelle della Lira
+    { name: "Sheliak", ra: 18.835, dec: 33.37, mag: 3.5 },
+    { name: "Sulafat", ra: 18.982, dec: 32.68, mag: 3.2 },
+    { name: "Delta2 Lyr", ra: 18.908, dec: 36.9, mag: 4.2 },
+    { name: "Zeta2 Lyr", ra: 18.747, dec: 37.6, mag: 4.3 },
+
+    // Stelle dell'Aquila
+    { name: "Alshain", ra: 19.923, dec: 6.4, mag: 3.7 },
+    { name: "Tarazed", ra: 19.772, dec: 10.62, mag: 2.7 },
+    { name: "Okab", ra: 19.084, dec: 13.85, mag: 3.0 },
+
+    // Stelle del Leone
+    { name: "Denebola", ra: 11.817, dec: 14.57, mag: 2.14 },
+    { name: "Algieba", ra: 10.333, dec: 19.83, mag: 2.01 },
+    { name: "Zosma", ra: 11.235, dec: 20.52, mag: 2.56 },
+    { name: "Chertan", ra: 11.236, dec: 15.42, mag: 3.33 },
+    { name: "Rasalas", ra: 9.88, dec: 26.0, mag: 3.4 },
+
+    // ==================== NUOVE STELLE STRUTTURALI (NASCOSTE - hidden: true) ====================
+    // Toro
+    { name: "Elnath", ra: 5.436, dec: 28.60, mag: 1.65, hidden: true },
+    { name: "Hyadum I", ra: 4.33, dec: 15.63, mag: 3.5, hidden: true },
+    { name: "Ain", ra: 4.478, dec: 19.18, mag: 3.5, hidden: true },
+    { name: "Alcyone", ra: 3.78, dec: 24.1, mag: 2.8, hidden: true },
+    { name: "Zeta Tau", ra: 5.628, dec: 21.14, mag: 3.0, hidden: true },
+
+    // Gemelli
+    { name: "Alhena", ra: 6.629, dec: 16.39, mag: 1.9, hidden: true },
+    { name: "Mebsuta", ra: 6.382, dec: 25.13, mag: 3.0, hidden: true },
+    { name: "Tejat", ra: 6.248, dec: 22.51, mag: 3.3, hidden: true },
+
+    // Pegaso
+    { name: "Markab", ra: 23.079, dec: 15.20, mag: 2.5, hidden: true },
+    { name: "Scheat", ra: 23.063, dec: 28.08, mag: 2.4, hidden: true },
+    { name: "Algenib", ra: 0.221, dec: 15.18, mag: 2.8, hidden: true },
+    
+    // Andromeda
+    { name: "Sirrah", ra: 0.139, dec: 29.09, mag: 2.06, hidden: true },
+    { name: "Mirach", ra: 1.162, dec: 35.62, mag: 2.07, hidden: true },
+    { name: "Almach", ra: 2.065, dec: 42.33, mag: 2.1, hidden: true },
+
+    // Ercole
+    { name: "Rasalgethi", ra: 17.243, dec: 14.39, mag: 3.0, hidden: true },
+    { name: "Kornephoros", ra: 16.502, dec: 21.49, mag: 2.8, hidden: true },
+    { name: "Rutilicus", ra: 16.69, dec: 37.8, mag: 3.5, hidden: true },
+    { name: "Pi Her", ra: 17.25, dec: 36.8, mag: 3.1, hidden: true },
+    { name: "Zeta Her", ra: 16.69, dec: 31.6, mag: 2.8, hidden: true },
+    { name: "Epsilon Her", ra: 17.0, dec: 31.0, mag: 3.9, hidden: true }
 ];
 
 // Collegamenti per le Linee delle Costellazioni
@@ -78,7 +140,75 @@ const CONSTELLATIONS = [
     { from: "Caph", to: "Schedar" },
     { from: "Schedar", to: "Gamma Cas" },
     { from: "Gamma Cas", to: "Ruchbah" },
-    { from: "Ruchbah", to: "Segin" }
+    { from: "Ruchbah", to: "Segin" },
+
+    // Orione
+    { from: "Betelgeuse", to: "Bellatrix" },
+    { from: "Bellatrix", to: "Mintaka" },
+    { from: "Mintaka", to: "Alnilam" },
+    { from: "Alnilam", to: "Alnitak" },
+    { from: "Alnitak", to: "Betelgeuse" },
+    { from: "Alnitak", to: "Saiph" },
+    { from: "Saiph", to: "Rigel" },
+    { from: "Rigel", to: "Mintaka" },
+
+    // Cigno
+    { from: "Deneb", to: "Sadr" },
+    { from: "Sadr", to: "Albireo" },
+    { from: "Sadr", to: "Gienah" },
+    { from: "Sadr", to: "Fawaris" },
+
+    // Lira
+    { from: "Vega", to: "Zeta2 Lyr" },
+    { from: "Zeta2 Lyr", to: "Sheliak" },
+    { from: "Sheliak", to: "Sulafat" },
+    { from: "Sulafat", to: "Delta2 Lyr" },
+    { from: "Delta2 Lyr", to: "Zeta2 Lyr" },
+
+    // Aquila
+    { from: "Altair", to: "Alshain" },
+    { from: "Altair", to: "Tarazed" },
+    { from: "Tarazed", to: "Okab" },
+
+    // Leone
+    { from: "Regolo", to: "Algieba" },
+    { from: "Algieba", to: "Rasalas" },
+    { from: "Regolo", to: "Chertan" },
+    { from: "Chertan", to: "Zosma" },
+    { from: "Zosma", to: "Algieba" },
+    { from: "Chertan", to: "Denebola" },
+
+    // ==================== COLLEGAMENTI NUOVE COSTELLAZIONI (Stelle Nascoste) ====================
+    // Toro
+    { from: "Aldebaran", to: "Hyadum I" },
+    { from: "Hyadum I", to: "Ain" },
+    { from: "Ain", to: "Aldebaran" },
+    { from: "Aldebaran", to: "Elnath" },
+    { from: "Ain", to: "Zeta Tau" },
+    { from: "Hyadum I", to: "Alcyone" },
+    
+    // Gemelli
+    { from: "Castore", to: "Mebsuta" },
+    { from: "Mebsuta", to: "Tejat" },
+    { from: "Polluce", to: "Alhena" },
+    
+    // Pegaso
+    { from: "Markab", to: "Scheat" },
+    { from: "Scheat", to: "Sirrah" },
+    { from: "Sirrah", to: "Algenib" },
+    { from: "Algenib", to: "Markab" },
+    
+    // Andromeda
+    { from: "Sirrah", to: "Mirach" },
+    { from: "Mirach", to: "Almach" },
+    
+    // Ercole
+    { from: "Kornephoros", to: "Zeta Her" },
+    { from: "Zeta Her", to: "Rutilicus" },
+    { from: "Rutilicus", to: "Pi Her" },
+    { from: "Pi Her", to: "Epsilon Her" },
+    { from: "Epsilon Her", to: "Zeta Her" },
+    { from: "Kornephoros", to: "Rasalgethi" }
 ];
 
 // Stato dell'applicazione
@@ -91,7 +221,9 @@ const state = {
     selectedPlanet: null, // Nessun pianeta selezionato di default all'avvio (nasconde pannello lune)
     animationSpeed: 1, // Multiplo di velocità per lune (1x, 10x, 100x, 1000x, ecc.)
     simulatedDate: new Date(), // Data simulata corrente per le lune
-    lastTickTime: Date.now()
+    lastTickTime: Date.now(),
+    compassActive: false,
+    currentHeading: 0
 };
 
 // Stato tracciamento ISS
@@ -137,7 +269,7 @@ function initDOM() {
         btnTimeAddHour: document.getElementById('btnTimeAddHour'),
         gpsError: document.getElementById('gpsError'),
         planetsGrid: document.getElementById('planetsGrid'),
-        compassPlanetsGroup: document.getElementById('compassPlanetsGroup'),
+        compassPlanetsGroup: null,
         moonsSection: document.getElementById('moonsSection'),
         selectedPlanetTitle: document.getElementById('selectedPlanetTitle'),
         moonsCanvas: document.getElementById('moonsCanvas'),
@@ -329,6 +461,76 @@ function setupEventListeners() {
     // JPL Horizons Live Debugger (Messo in sicurezza se l'elemento è stato rimosso dall'HTML)
     if (dom.btnJPLQuery) {
         dom.btnJPLQuery.addEventListener('click', runJPLHorizonsQuery);
+    }
+
+    // Gestione bussola reale
+    const btnCompass = document.getElementById('btnCompassToggle');
+    if (btnCompass) {
+        btnCompass.addEventListener('click', toggleCompass);
+    }
+
+    // Interattività drag-to-rotate (Stile In-The-Sky.org)
+    const planisphereSvg = document.getElementById('planisphereSvg');
+    if (planisphereSvg) {
+        let isDragging = false;
+        let dragStartAngle = 0;
+        let dragStartHeading = 0;
+        
+        const getAngle = (e) => {
+            const rect = planisphereSvg.getBoundingClientRect();
+            const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+            const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+            const centerX = rect.left + rect.width / 2;
+            const centerY = rect.top + rect.height / 2;
+            return Math.atan2(clientY - centerY, clientX - centerX) * 180 / Math.PI;
+        };
+        
+        const handleDragStart = (e) => {
+            // Disattiva la bussola reale automatica se l'utente trascina manualmente
+            if (state.compassActive) {
+                deactivateCompass();
+            }
+            isDragging = true;
+            dragStartAngle = getAngle(e);
+            dragStartHeading = state.currentHeading || 0;
+            
+            planisphereSvg.style.cursor = 'grabbing';
+            e.preventDefault();
+        };
+        
+        const handleDragMove = (e) => {
+            if (!isDragging) return;
+            const currentAngle = getAngle(e);
+            const diff = currentAngle - dragStartAngle;
+            let newHeading = (dragStartHeading - diff) % 360;
+            if (newHeading < 0) newHeading += 360;
+            
+            state.currentHeading = newHeading;
+            const innerGroup = document.getElementById('planisphereInnerGroup');
+            if (innerGroup) {
+                innerGroup.style.transform = `rotate(${-newHeading}deg)`;
+                innerGroup.style.transformOrigin = '100px 100px';
+            }
+            
+            e.preventDefault();
+        };
+        
+        const handleDragEnd = () => {
+            if (isDragging) {
+                isDragging = false;
+                planisphereSvg.style.cursor = 'grab';
+            }
+        };
+        
+        // Eventi Mouse
+        planisphereSvg.addEventListener('mousedown', handleDragStart);
+        window.addEventListener('mousemove', handleDragMove);
+        window.addEventListener('mouseup', handleDragEnd);
+        
+        // Eventi Touch (Mobile)
+        planisphereSvg.addEventListener('touchstart', handleDragStart, { passive: false });
+        window.addEventListener('touchmove', handleDragMove, { passive: false });
+        window.addEventListener('touchend', handleDragEnd);
     }
 
     // Gestione ridimensionamento Canvas
@@ -668,24 +870,9 @@ function recalculate() {
             </div>
         `;
         
-        // Posiziona il pianeta sulla Bussola Celeste (Bussola SVG)
-        if (isVisible) {
-            const r = 90 * (90 - alt) / 90;
-            const angleRad = (az - 90) * Math.PI / 180;
-            const x = 100 + r * Math.cos(angleRad);
-            const y = 100 + r * Math.sin(angleRad);
-            
-            compassNodesHtml += `
-                <circle cx="${x}" cy="${y}" r="5" fill="${p.color}" class="compass-planet-node" style="--planet-color: ${p.color}" onclick="selectPlanet('${p.id}')">
-                    <title>${p.name} (Alt: ${alt.toFixed(1)}°, Az: ${az.toFixed(1)}°)</title>
-                </circle>
-                <text x="${x}" y="${y - 8}" fill="#fff" font-size="7" font-weight="600" text-anchor="middle">${p.name}</text>
-            `;
-        }
     });
     
     dom.planetsGrid.innerHTML = cardsHtml;
-    dom.compassPlanetsGroup.innerHTML = compassNodesHtml;
     
     updateMoonsPanel();
     drawMoons();
@@ -2373,6 +2560,104 @@ function updateConfigSummary() {
     summaryText.innerText = `${cityText} • ${timeText}`;
 }
 
+// ==================== LOGICA BUSSOLA REALE DEL PLANISFERO ====================
+let compassListenerActive = false;
+
+function handleCompassOrientation(event) {
+    if (!state.compassActive) return;
+    
+    let heading = null;
+    if (event.webkitCompassHeading !== undefined) {
+        heading = event.webkitCompassHeading;
+    } else if (event.alpha !== null) {
+        // Su Android, l'angolo alpha ruota in senso antiorario da 0 a 360 gradi.
+        // Lo convertiamo in un azimut standard in senso orario.
+        heading = (360 - event.alpha) % 360;
+    }
+    
+    if (heading !== null && !isNaN(heading)) {
+        state.currentHeading = heading;
+        const innerGroup = document.getElementById('planisphereInnerGroup');
+        if (innerGroup) {
+            innerGroup.style.transform = `rotate(${-heading}deg)`;
+            innerGroup.style.transformOrigin = '100px 100px';
+        }
+    }
+}
+
+function startCompass() {
+    if (compassListenerActive) return;
+    
+    if (window.DeviceOrientationEvent) {
+        window.addEventListener('deviceorientation', handleCompassOrientation, true);
+        compassListenerActive = true;
+        
+        state.compassActive = true;
+        const btn = document.getElementById('btnCompassToggle');
+        const dot = document.getElementById('compassStatusDot');
+        if (btn && dot) {
+            btn.style.background = 'rgba(16, 185, 129, 0.12)';
+            btn.style.borderColor = 'rgba(16, 185, 129, 0.35)';
+            btn.style.color = '#10b981';
+            btn.style.boxShadow = '0 0 10px rgba(16, 185, 129, 0.15)';
+            dot.style.backgroundColor = '#10b981';
+            dot.style.boxShadow = '0 0 8px #10b981';
+            dot.style.animation = 'pulse 2s infinite';
+        }
+    } else {
+        alert("Bussola non supportata su questo browser o dispositivo.");
+        deactivateCompass();
+    }
+}
+
+function deactivateCompass() {
+    state.compassActive = false;
+    if (compassListenerActive) {
+        window.removeEventListener('deviceorientation', handleCompassOrientation, true);
+        compassListenerActive = false;
+    }
+    
+    const innerGroup = document.getElementById('planisphereInnerGroup');
+    if (innerGroup) {
+        innerGroup.style.transform = 'rotate(0deg)';
+    }
+    
+    const btn = document.getElementById('btnCompassToggle');
+    const dot = document.getElementById('compassStatusDot');
+    if (btn && dot) {
+        btn.style.background = 'rgba(168, 85, 247, 0.08)';
+        btn.style.borderColor = 'rgba(168, 85, 247, 0.2)';
+        btn.style.color = '#c084fc';
+        btn.style.boxShadow = 'none';
+        dot.style.backgroundColor = 'var(--text-muted)';
+        dot.style.boxShadow = 'none';
+        dot.style.animation = 'none';
+    }
+}
+
+function toggleCompass() {
+    if (state.compassActive) {
+        deactivateCompass();
+    } else {
+        if (typeof DeviceOrientationEvent !== 'undefined' && typeof DeviceOrientationEvent.requestPermission === 'function') {
+            DeviceOrientationEvent.requestPermission()
+                .then(permissionState => {
+                    if (permissionState === 'granted') {
+                        startCompass();
+                    } else {
+                        alert("Permesso per i sensori di orientamento negato. Impossibile attivare la bussola reale.");
+                    }
+                })
+                .catch(err => {
+                    console.error("Errore nella richiesta permessi bussola:", err);
+                    alert("Errore nell'attivazione dei sensori del dispositivo. Assicurati di essere su HTTPS.");
+                });
+        } else {
+            startCompass();
+        }
+    }
+}
+
 // Calcola e proietta in tempo reale la volta celeste (Stelle e Costellazioni) sul Planisfero
 function calculatePlanisphere() {
     const planisphereStarsGroup = document.getElementById('planisphereStarsGroup');
@@ -2407,22 +2692,24 @@ function calculatePlanisphere() {
                 starsCoords[s.name] = { x, y };
                 
                 // Diametro in base alla magnitudine apparente (più luminosa = cerchio più grande)
-                let radius = 0.8;
-                if (s.mag < 0) radius = 2.4;
-                else if (s.mag < 1.0) radius = 1.8;
-                else if (s.mag < 2.0) radius = 1.3;
-                
-                starsHtml += `
-                    <circle cx="${x}" cy="${y}" r="${radius}" fill="#fff" style="opacity: 0.95; filter: drop-shadow(0 0 1px #fff);">
-                        <title>${s.name} (Alt: ${alt.toFixed(1)}°, Az: ${az.toFixed(1)}°, Mag: ${s.mag})</title>
-                    </circle>
-                `;
-                
-                // Etichette di testo solo per le stelle più brillanti (mag < 1.5) per non affollare la mappa
-                if (s.mag < 1.3 || s.name === "Stella Polare") {
+                if (!s.hidden) {
+                    let radius = 0.8;
+                    if (s.mag < 0) radius = 2.4;
+                    else if (s.mag < 1.0) radius = 1.8;
+                    else if (s.mag < 2.0) radius = 1.3;
+                    
                     starsHtml += `
-                        <text x="${x}" y="${y - 4}" fill="rgba(255,255,255,0.4)" font-size="4" font-weight="500" text-anchor="middle" font-family="var(--font-sans)">${s.name}</text>
+                        <circle cx="${x}" cy="${y}" r="${radius}" fill="#fff" style="opacity: 0.95; filter: drop-shadow(0 0 1px #fff);">
+                            <title>${s.name} (Alt: ${alt.toFixed(1)}°, Az: ${az.toFixed(1)}°, Mag: ${s.mag})</title>
+                        </circle>
                     `;
+                    
+                    // Etichette di testo solo per le stelle più brillanti (mag < 1.5) per non affollare la mappa
+                    if (s.mag < 1.3 || s.name === "Stella Polare") {
+                        starsHtml += `
+                            <text x="${x}" y="${y - 4}" fill="rgba(255,255,255,0.4)" font-size="4" font-weight="500" text-anchor="middle" font-family="var(--font-sans)">${s.name}</text>
+                        `;
+                    }
                 }
             }
         } catch(e) {
@@ -2444,8 +2731,20 @@ function calculatePlanisphere() {
     
     // Scrive il nome della costellazione al centro geometrico delle sue stelle visibili
     const constellationLabels = [
-        { name: "Grande Carro", stars: ["Dubhe", "Merak", "Phecda", "Megrez"] },
-        { name: "Cassiopea", stars: ["Caph", "Schedar", "Gamma Cas", "Ruchbah"] }
+        { name: "Grande Carro", stars: ["Dubhe", "Merak", "Phecda", "Megrez", "Alioth", "Mizar", "Alkaid"] },
+        { name: "Cassiopea", stars: ["Caph", "Schedar", "Gamma Cas", "Ruchbah", "Segin"] },
+        { name: "Orione", stars: ["Betelgeuse", "Rigel", "Bellatrix", "Saiph"] },
+        { name: "Cigno", stars: ["Deneb", "Albireo", "Sadr", "Gienah", "Fawaris"] },
+        { name: "Lira", stars: ["Vega", "Sheliak", "Sulafat"] },
+        { name: "Aquila", stars: ["Altair", "Alshain", "Tarazed"] },
+        { name: "Leone", stars: ["Regolo", "Denebola", "Algieba", "Zosma"] },
+        
+        // Nuove costellazioni senza disegno stelle
+        { name: "Toro", stars: ["Aldebaran", "Hyadum I", "Ain", "Elnath", "Zeta Tau"] },
+        { name: "Gemelli", stars: ["Castore", "Polluce", "Alhena", "Mebsuta"] },
+        { name: "Pegaso", stars: ["Markab", "Scheat", "Algenib"] },
+        { name: "Andromeda", stars: ["Sirrah", "Mirach", "Almach"] },
+        { name: "Ercole", stars: ["Kornephoros", "Zeta Her", "Rutilicus", "Pi Her", "Epsilon Her"] }
     ];
     
     constellationLabels.forEach(cl => {
@@ -2485,10 +2784,10 @@ function calculatePlanisphere() {
                 const y = 100 + r * Math.sin(angleRad);
                 
                 planetsHtml += `
-                    <circle cx="${x}" cy="${y}" r="3" fill="${p.color}" style="stroke: #fff; stroke-width: 0.5px; filter: drop-shadow(0 0 3px ${p.color}); cursor: pointer;" onclick="selectPlanet('${p.id}')">
+                    <circle cx="${x}" cy="${y}" r="2" fill="${p.color}" style="stroke: #fff; stroke-width: 0.4px; filter: drop-shadow(0 0 2px ${p.color}); cursor: pointer;" onclick="selectPlanet('${p.id}')">
                         <title>${p.name} (Alt: ${hor.altitude.toFixed(1)}°, Az: ${hor.azimuth.toFixed(1)}°)</title>
                     </circle>
-                    <text x="${x}" y="${y - 5}" fill="${p.color}" font-size="4.8" font-weight="700" text-anchor="middle" font-family="var(--font-sans)">${p.name}</text>
+                    <text x="${x}" y="${y - 4.5}" fill="${p.color}" font-size="4.2" font-weight="700" text-anchor="middle" font-family="var(--font-sans)">${p.name}</text>
                 `;
             }
         } catch(e) {
