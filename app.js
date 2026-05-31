@@ -773,8 +773,28 @@ function recalculate() {
         
         document.getElementById('moonRiseVal').innerText = moonRiseTime ? formatTime(moonRiseTime.date) : '--:--';
         document.getElementById('moonSetVal').innerText = moonSetTime ? formatTime(moonSetTime.date) : '--:--';
+
+        // Calcola l'altezza del Sole all'orizzonte per l'ora specificata
+        const sunEqu = Astronomy.Equator(Astronomy.Body.Sun, astroTime, observer, true, true);
+        const sunHor = Astronomy.Horizon(astroTime, observer, sunEqu.ra, sunEqu.dec, 'normal');
+        const sunAlt = sunHor.altitude;
+        const sunAltEl = document.getElementById('sunAltVal');
+        if (sunAltEl) {
+            sunAltEl.innerText = `${sunAlt.toFixed(1)}°`;
+            sunAltEl.style.color = sunAlt > 0 ? '#f59e0b' : 'var(--text-secondary)';
+        }
+
+        // Calcola l'altezza della Luna all'orizzonte per l'ora specificata
+        const moonEqu = Astronomy.Equator(Astronomy.Body.Moon, astroTime, observer, true, true);
+        const moonHor = Astronomy.Horizon(astroTime, observer, moonEqu.ra, moonEqu.dec, 'normal');
+        const moonAlt = moonHor.altitude;
+        const moonAltEl = document.getElementById('moonAltVal');
+        if (moonAltEl) {
+            moonAltEl.innerText = `${moonAlt.toFixed(1)}°`;
+            moonAltEl.style.color = moonAlt > 0 ? '#38bdf8' : 'var(--text-secondary)';
+        }
     } catch (e) {
-        console.error("Errore Alba/Tramonto Sole e Luna:", e);
+        console.error("Errore Alba/Tramonto/Altezze Sole e Luna:", e);
     }
 
     // 2. Calcola lo stato della Luna
