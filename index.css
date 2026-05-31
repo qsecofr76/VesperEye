@@ -857,12 +857,30 @@ footer {
         font-size: 0.72rem;
     }
     
+    /* Impedisce al pannello delle lune e ai suoi figli flex di allargarsi oltre lo schermo */
+    .moons-section {
+        display: flex !important;
+        flex-direction: column !important;
+        width: 100% !important;
+        max-width: 100% !important;
+        box-sizing: border-box !important;
+        gap: 1.25rem !important;
+    }
+    
+    .moons-section > div {
+        width: 100% !important;
+        max-width: 100% !important;
+        min-width: 0 !important;
+        box-sizing: border-box !important;
+    }
+    
     /* Impedisce al canvas delle lune di esplodere in larghezza su mobile */
     .canvas-container {
         min-height: auto !important;
         aspect-ratio: 16/9;
         width: 100%;
         max-width: 100%;
+        box-sizing: border-box !important;
     }
     
     /* Riduce dimensione caratteri e pulsanti su mobile */
