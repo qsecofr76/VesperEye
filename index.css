@@ -788,3 +788,57 @@ footer {
     text-align: right;
     font-family: var(--font-mono);
 }
+
+/* Ottimizzazioni per schermi mobile verticali */
+@media (max-width: 767px) {
+    .container {
+        padding: 0.75rem;
+    }
+    
+    .panel {
+        padding: 1rem;
+    }
+    
+    header {
+        padding-bottom: 1rem;
+        margin-bottom: 1rem;
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    
+    .location-status {
+        width: 100%;
+        gap: 1rem;
+        justify-content: space-between;
+        padding: 0.6rem 0.8rem;
+    }
+    
+    .status-value {
+        font-size: 0.8rem;
+    }
+    
+    .planets-grid {
+        grid-template-columns: 1fr;
+        gap: 0.85rem;
+    }
+    
+    .iss-table th, .iss-table td {
+        padding: 0.5rem 0.6rem;
+        font-size: 0.72rem;
+    }
+    
+    /* Riduce dimensione caratteri e pulsanti su mobile */
+    button {
+        padding: 0.65rem;
+        font-size: 0.85rem;
+    }
+    
+    .sky-compass-container {
+        padding: 0.5rem 0;
+    }
+    
+    .compass-svg-wrapper {
+        width: 280px;
+        height: 280px;
+    }
+}

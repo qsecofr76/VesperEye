@@ -33,7 +33,7 @@ const state = {
     alt: 12,
     isRealTime: true,
     customDate: new Date(),
-    selectedPlanet: 'Jupiter', // Default lune per Giove
+    selectedPlanet: null, // Nessun pianeta selezionato di default all'avvio (nasconde pannello lune)
     animationSpeed: 1, // Multiplo di velocità per lune (1x, 10x, 100x, 1000x, ecc.)
     simulatedDate: new Date(), // Data simulata corrente per le lune
     lastTickTime: Date.now()
@@ -48,18 +48,14 @@ const FALLBACK_ISS_TLE = {
     header: "ISS (ZARYA)"
 };
 
-// Configurazione 10 Pianeti Nani e Asteroidi Maggiori
+// Configurazione Corpi Minori e Pianeti Nani Selezionati (Plutone + Asteroidi Maggiori)
 const DWARF_PLANETS = [
     { id: 'Pluto', name: 'Plutone', type: 'Pianeta Nano', color: '#fca5a5', useNative: true },
     { id: 'Ceres', name: 'Cerere', type: 'Pianeta Nano', color: '#cbd5e1', useNative: false, elements: { a: 2.7674, e: 0.0789, i: 10.593, node: 80.255, peri: 73.422, M0: 95.865, n: 0.9856076686 / Math.pow(2.7674, 1.5) } },
-    { id: 'Eris', name: 'Eris', type: 'Pianeta Nano', color: '#d8b4fe', useNative: false, elements: { a: 67.67, e: 0.441, i: 44.2, node: 35.8, peri: 151.6, M0: 204.6, n: 0.9856076686 / Math.pow(67.67, 1.5) } },
-    { id: 'Haumea', name: 'Haumea', type: 'Pianeta Nano', color: '#fdba74', useNative: false, elements: { a: 43.34, e: 0.198, i: 28.2, node: 121.1, peri: 240.2, M0: 210.4, n: 0.9856076686 / Math.pow(43.34, 1.5) } },
-    { id: 'Makemake', name: 'Makemake', type: 'Pianeta Nano', color: '#fef08a', useNative: false, elements: { a: 45.79, e: 0.156, i: 29.0, node: 79.6, peri: 298.4, M0: 164.8, n: 0.9856076686 / Math.pow(45.79, 1.5) } },
     { id: 'Vesta', name: 'Vesta', type: 'Asteroide', color: '#86efac', useNative: false, elements: { a: 2.3619, e: 0.0888, i: 7.140, node: 103.81, peri: 150.75, M0: 20.85, n: 0.9856076686 / Math.pow(2.3619, 1.5) } },
     { id: 'Pallas', name: 'Pallade', type: 'Asteroide', color: '#93c5fd', useNative: false, elements: { a: 2.772, e: 0.231, i: 34.8, node: 173.1, peri: 310.2, M0: 107.5, n: 0.9856076686 / Math.pow(2.772, 1.5) } },
     { id: 'Juno', name: 'Giunone', type: 'Asteroide', color: '#fda4af', useNative: false, elements: { a: 2.669, e: 0.258, i: 12.98, node: 169.9, peri: 248.1, M0: 35.2, n: 0.9856076686 / Math.pow(2.669, 1.5) } },
-    { id: 'Hygiea', name: 'Igea', type: 'Asteroide', color: '#a5f3fc', useNative: false, elements: { a: 3.136, e: 0.114, i: 3.84, node: 283.4, peri: 312.3, M0: 113.8, n: 0.9856076686 / Math.pow(3.136, 1.5) } },
-    { id: 'Chiron', name: 'Chirone', type: 'Centauro', color: '#f9a8d4', useNative: false, elements: { a: 13.67, e: 0.380, i: 6.93, node: 209.4, peri: 339.3, M0: 339.4, n: 0.9856076686 / Math.pow(13.67, 1.5) } }
+    { id: 'Hygiea', name: 'Igea', type: 'Asteroide', color: '#a5f3fc', useNative: false, elements: { a: 3.136, e: 0.114, i: 3.84, node: 283.4, peri: 312.3, M0: 113.8, n: 0.9856076686 / Math.pow(3.136, 1.5) } }
 ];
 
 // Riferimenti DOM (Inizializzati in initDOM)
@@ -153,6 +149,29 @@ function initTimeInputs() {
 
 // Configura i listener degli eventi
 function setupEventListeners() {
+    // Toggle pannello collassabile Data & Ora
+    const timeTitle = document.getElementById('timeTitle');
+    const timePanelContent = document.getElementById('timePanelContent');
+    const timePanelArrow = document.getElementById('timePanelArrow');
+    
+    if (timeTitle && timePanelContent && timePanelArrow) {
+        timeTitle.addEventListener('click', () => {
+            const isCollapsed = timePanelContent.style.display === 'none';
+            timePanelContent.style.display = isCollapsed ? 'block' : 'none';
+            timePanelArrow.style.transform = isCollapsed ? 'rotate(180deg)' : 'rotate(0deg)';
+            
+            if (isCollapsed) {
+                timeTitle.style.borderBottom = '1px solid rgba(255, 255, 255, 0.05)';
+                timeTitle.style.marginBottom = '1.25rem';
+                timeTitle.style.paddingBottom = '0.5rem';
+            } else {
+                timeTitle.style.borderBottom = 'none';
+                timeTitle.style.marginBottom = '0';
+                timeTitle.style.paddingBottom = '0';
+            }
+        });
+    }
+
     // Cambio coordinate manuale
     const updateCoords = () => {
         state.lat = parseFloat(dom.inputLat.value) || 0;
@@ -622,6 +641,9 @@ function recalculate() {
     
     // 5. Calcola visibilità Pianeti Nani e Asteroidi
     calculateDwarfs();
+    
+    // 6. Aggiorna immagine delle macchie solari (Throttled)
+    updateSunspots();
 }
 
 // Converte gradi di azimut in direzione cardinale breve
@@ -2090,7 +2112,7 @@ function calculateDwarfs() {
         return;
     }
     
-    let cardsHtml = '';
+    let visibleDwarfs = [];
     
     DWARF_PLANETS.forEach(d => {
         let alt = 0;
@@ -2175,39 +2197,81 @@ function calculateDwarfs() {
             }
         }
         
-        const cardDir = getCardinalDirection(az);
-        
-        cardsHtml += `
-            <div class="planet-card" style="--planet-color: ${d.color}; cursor: default;">
-                <div class="planet-header">
-                    <div class="planet-info">
-                        <div class="planet-dot" style="background-color: ${d.color}"></div>
-                        <span class="planet-name" style="font-size: 1rem;">${d.name}</span>
-                    </div>
-                    <span class="visibility-badge ${isVisible ? 'visible' : 'invisible'}">
-                        ${isVisible ? 'Visibile' : 'Non Visibile'}
-                    </span>
-                </div>
-                
-                <div class="planet-coords">
-                    <div class="coord-box">
-                        <span class="coord-label">Altezza</span>
-                        <span class="coord-val">${alt.toFixed(2)}°</span>
-                    </div>
-                    <div class="coord-box">
-                        <span class="coord-label">Azimut</span>
-                        <span class="coord-val">${az.toFixed(1)}° (${cardDir})</span>
-                    </div>
-                </div>
-                
-                <div class="planet-times" style="font-size: 0.72rem; color: var(--text-secondary); display: flex; justify-content: space-between; border-top: 1px solid rgba(255, 255, 255, 0.05); padding-top: 0.5rem; margin-top: 0.25rem;">
-                    <span>AR: ${formatRA(ra)}</span>
-                    <span>Dec: ${dec.toFixed(2)}°</span>
-                    <span style="color: var(--text-muted); font-size: 0.65rem; font-weight: 600; text-transform: uppercase;">${d.type}</span>
-                </div>
+        if (isVisible) {
+            visibleDwarfs.push({
+                name: d.name,
+                type: d.type,
+                color: d.color,
+                alt: alt,
+                az: az,
+                ra: ra,
+                dec: dec
+            });
+        }
+    });
+    
+    if (visibleDwarfs.length === 0) {
+        dom.dwarfsGrid.innerHTML = `
+            <div class="iss-no-passes" style="padding: 1.5rem; font-size: 0.85rem;">
+                Nessun corpo minore attualmente visibile sopra l'orizzonte per questa posizione e data.
             </div>
+        `;
+        return;
+    }
+    
+    // Costruisce la tabella compatta
+    let tableHtml = `
+        <div class="iss-table-wrapper">
+            <table class="iss-table">
+                <thead>
+                    <tr>
+                        <th>Corpo</th>
+                        <th>Tipo</th>
+                        <th>Altezza (h)</th>
+                        <th>Azimut</th>
+                        <th>A.R.</th>
+                        <th>Decl.</th>
+                    </tr>
+                </thead>
+                <tbody>
+    `;
+    
+    visibleDwarfs.forEach(vd => {
+        const cardDir = getCardinalDirection(vd.az);
+        tableHtml += `
+            <tr>
+                <td style="font-weight: 600; display: flex; align-items: center; gap: 0.5rem; height: 100%;">
+                    <div class="planet-dot" style="width: 8px; height: 8px; background-color: ${vd.color}; box-shadow: 0 0 4px ${vd.color}; margin-right: 2px;"></div>
+                    ${vd.name}
+                </td>
+                <td style="color: var(--text-secondary); font-size: 0.72rem; font-weight: 500;">${vd.type}</td>
+                <td style="font-family: var(--font-mono); font-weight: 600; color: #86efac;">${vd.alt.toFixed(2)}°</td>
+                <td style="font-family: var(--font-mono);">${vd.az.toFixed(1)}° (${cardDir})</td>
+                <td style="font-family: var(--font-mono); color: var(--text-secondary);">${formatRA(vd.ra)}</td>
+                <td style="font-family: var(--font-mono); color: var(--text-secondary);">${vd.dec.toFixed(2)}°</td>
+            </tr>
         `;
     });
     
-    dom.dwarfsGrid.innerHTML = cardsHtml;
+    tableHtml += `
+                </tbody>
+            </table>
+        </div>
+    `;
+    
+    dom.dwarfsGrid.innerHTML = tableHtml;
+}
+
+// Aggiorna l'immagine delle macchie solari da SDO NASA a intervalli regolari (Throttled)
+let lastSunspotRefresh = 0;
+function updateSunspots() {
+    const now = Date.now();
+    // Aggiorna al massimo una volta ogni 5 minuti (300000 ms) per risparmiare banda
+    if (now - lastSunspotRefresh > 300000) {
+        const img = document.getElementById('sunspotImg');
+        if (img) {
+            img.src = `https://sdo.gsfc.nasa.gov/assets/img/latest/latest_1024_HMIIC.jpg?t=${now}`;
+            lastSunspotRefresh = now;
+        }
+    }
 }
