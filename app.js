@@ -2587,9 +2587,18 @@ function updateSunspots() {
     const now = Date.now();
     // Aggiorna al massimo una volta ogni 5 minuti (300000 ms) per risparmiare banda
     if (now - lastSunspotRefresh > 300000) {
-        const img = document.getElementById('sunspotImg');
-        if (img) {
-            img.src = `https://sdo.gsfc.nasa.gov/assets/img/latest/latest_1024_HMIIC.jpg?t=${now}`;
+        const hmiImg = document.getElementById('sunspotImg');
+        const aiaImg = document.getElementById('sunspotAia304Img');
+        let refreshed = false;
+        if (hmiImg) {
+            hmiImg.src = `https://sdo.gsfc.nasa.gov/assets/img/latest/latest_1024_HMIIC.jpg?t=${now}`;
+            refreshed = true;
+        }
+        if (aiaImg) {
+            aiaImg.src = `https://sdo.gsfc.nasa.gov/assets/img/latest/latest_1024_0304.jpg?t=${now}`;
+            refreshed = true;
+        }
+        if (refreshed) {
             lastSunspotRefresh = now;
         }
     }
