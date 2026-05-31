@@ -259,6 +259,25 @@
                         <!-- Verrà popolato da JS con la tabella dei passaggi -->
                     </div>
                 </section>
+
+                <!-- Pianeti Nani e Asteroidi Maggiori -->
+                <section class="panel" id="dwarfsSection">
+                    <h2 class="panel-title" style="border-bottom: none; margin-bottom: 0.5rem; display: flex; align-items: center; gap: 0.5rem;">
+                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color: #fda4af; filter: drop-shadow(0 0 4px rgba(253, 164, 175, 0.4));">
+                            <circle cx="12" cy="12" r="6"></circle>
+                            <circle cx="12" cy="12" r="2"></circle>
+                            <path d="M12 2v4M12 18v4M2 12h4M18 12h4"></path>
+                        </svg>
+                        Pianeti Nani & Asteroidi Maggiori
+                    </h2>
+                    <p style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 1.25rem;">
+                        Posizioni apparenti e visibilità dei principali pianeti nani e corpi minori del Sistema Solare (calcolo Kepleriano perturbato).
+                    </p>
+                    
+                    <div class="planets-grid" id="dwarfsGrid">
+                        <!-- Le card dei pianeti nani saranno iniettate da JavaScript -->
+                    </div>
+                </section>
             </div>
         </main>
 

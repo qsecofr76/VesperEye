@@ -48,6 +48,20 @@ const FALLBACK_ISS_TLE = {
     header: "ISS (ZARYA)"
 };
 
+// Configurazione 10 Pianeti Nani e Asteroidi Maggiori
+const DWARF_PLANETS = [
+    { id: 'Pluto', name: 'Plutone', type: 'Pianeta Nano', color: '#fca5a5', useNative: true },
+    { id: 'Ceres', name: 'Cerere', type: 'Pianeta Nano', color: '#cbd5e1', useNative: false, elements: { a: 2.7674, e: 0.0789, i: 10.593, node: 80.255, peri: 73.422, M0: 95.865, n: 0.9856076686 / Math.pow(2.7674, 1.5) } },
+    { id: 'Eris', name: 'Eris', type: 'Pianeta Nano', color: '#d8b4fe', useNative: false, elements: { a: 67.67, e: 0.441, i: 44.2, node: 35.8, peri: 151.6, M0: 204.6, n: 0.9856076686 / Math.pow(67.67, 1.5) } },
+    { id: 'Haumea', name: 'Haumea', type: 'Pianeta Nano', color: '#fdba74', useNative: false, elements: { a: 43.34, e: 0.198, i: 28.2, node: 121.1, peri: 240.2, M0: 210.4, n: 0.9856076686 / Math.pow(43.34, 1.5) } },
+    { id: 'Makemake', name: 'Makemake', type: 'Pianeta Nano', color: '#fef08a', useNative: false, elements: { a: 45.79, e: 0.156, i: 29.0, node: 79.6, peri: 298.4, M0: 164.8, n: 0.9856076686 / Math.pow(45.79, 1.5) } },
+    { id: 'Vesta', name: 'Vesta', type: 'Asteroide', color: '#86efac', useNative: false, elements: { a: 2.3619, e: 0.0888, i: 7.140, node: 103.81, peri: 150.75, M0: 20.85, n: 0.9856076686 / Math.pow(2.3619, 1.5) } },
+    { id: 'Pallas', name: 'Pallade', type: 'Asteroide', color: '#93c5fd', useNative: false, elements: { a: 2.772, e: 0.231, i: 34.8, node: 173.1, peri: 310.2, M0: 107.5, n: 0.9856076686 / Math.pow(2.772, 1.5) } },
+    { id: 'Juno', name: 'Giunone', type: 'Asteroide', color: '#fda4af', useNative: false, elements: { a: 2.669, e: 0.258, i: 12.98, node: 169.9, peri: 248.1, M0: 35.2, n: 0.9856076686 / Math.pow(2.669, 1.5) } },
+    { id: 'Hygiea', name: 'Igea', type: 'Asteroide', color: '#a5f3fc', useNative: false, elements: { a: 3.136, e: 0.114, i: 3.84, node: 283.4, peri: 312.3, M0: 113.8, n: 0.9856076686 / Math.pow(3.136, 1.5) } },
+    { id: 'Chiron', name: 'Chirone', type: 'Centauro', color: '#f9a8d4', useNative: false, elements: { a: 13.67, e: 0.380, i: 6.93, node: 209.4, peri: 339.3, M0: 339.4, n: 0.9856076686 / Math.pow(13.67, 1.5) } }
+];
+
 // Riferimenti DOM (Inizializzati in initDOM)
 let dom = {};
 let ctx = null;
@@ -86,7 +100,10 @@ function initDOM() {
         issSection: document.getElementById('issSection'),
         issLoading: document.getElementById('issLoading'),
         issError: document.getElementById('issError'),
-        issContent: document.getElementById('issContent')
+        issContent: document.getElementById('issContent'),
+        
+        // Sezione Pianeti Nani
+        dwarfsGrid: document.getElementById('dwarfsGrid')
     };
     // Rimuovi o metti in sicurezza se gli elementi non esistono
     ctx = dom.moonsCanvas.getContext('2d');
@@ -602,6 +619,9 @@ function recalculate() {
     } else {
         calculateIssPasses();
     }
+    
+    // 5. Calcola visibilità Pianeti Nani e Asteroidi
+    calculateDwarfs();
 }
 
 // Converte gradi di azimut in direzione cardinale breve
@@ -2046,4 +2066,148 @@ function calculateIssPasses() {
     if (dom.issContent) {
         dom.issContent.innerHTML = html;
     }
+}
+
+// Calcola la visibilità e le coordinate dei pianeti nani e degli asteroidi maggiori
+function calculateDwarfs() {
+    if (!dom.dwarfsGrid) return;
+    
+    const activeDate = getActiveDate();
+    const observer = new Astronomy.Observer(state.lat, state.lon, state.alt);
+    const astroTime = Astronomy.MakeTime(activeDate);
+    
+    // Inclinazione dell'eclittica J2000
+    const eps = 23.4392911 * Math.PI / 180;
+    const cos_eps = Math.cos(eps);
+    const sin_eps = Math.sin(eps);
+    
+    // Vettore Terra
+    let earthHel;
+    try {
+        earthHel = Astronomy.HelioVector(Astronomy.Body.Earth, astroTime);
+    } catch(e) {
+        console.error("Errore nel calcolo del vettore Terra:", e);
+        return;
+    }
+    
+    let cardsHtml = '';
+    
+    DWARF_PLANETS.forEach(d => {
+        let alt = 0;
+        let az = 0;
+        let ra = 0;
+        let dec = 0;
+        let isVisible = false;
+        
+        if (d.useNative) {
+            try {
+                const equ = Astronomy.Equator(Astronomy.Body.Pluto, astroTime, observer, true, true);
+                const hor = Astronomy.Horizon(astroTime, observer, equ.ra, equ.dec, 'normal');
+                alt = hor.altitude;
+                az = hor.azimuth;
+                ra = equ.ra;
+                dec = equ.dec;
+                isVisible = alt > 0;
+            } catch(e) {
+                console.error("Errore nel calcolo nativo di Plutone:", e);
+            }
+        } else {
+            try {
+                const el = d.elements;
+                const dt = astroTime.tt; // giorni dal J2000 epoch
+                
+                // 1. Anomalia media
+                let M = (el.M0 + el.n * dt) % 360;
+                if (M < 0) M += 360;
+                
+                // 2. Risoluzione dell'equazione di Keplero
+                const M_rad = M * Math.PI / 180;
+                let E = M_rad;
+                for (let iter = 0; iter < 8; iter++) {
+                    E = E - (E - el.e * Math.sin(E) - M_rad) / (1 - el.e * Math.cos(E));
+                }
+                
+                // 3. Coordinate nel piano orbitale
+                const x_orb = el.a * (Math.cos(E) - el.e);
+                const y_orb = el.a * Math.sqrt(1 - el.e * el.e) * Math.sin(E);
+                
+                // 4. Rotazione in coordinate Eclittiche Eliocentriche J2000
+                const i_rad = el.i * Math.PI / 180;
+                const node_rad = el.node * Math.PI / 180;
+                const peri_rad = el.peri * Math.PI / 180;
+                
+                const cos_w = Math.cos(peri_rad);
+                const sin_w = Math.sin(peri_rad);
+                const cos_N = Math.cos(node_rad);
+                const sin_N = Math.sin(node_rad);
+                const cos_i = Math.cos(i_rad);
+                const sin_i = Math.sin(i_rad);
+                
+                const x_hel = x_orb * (cos_w * cos_N - sin_w * sin_N * cos_i) - y_orb * (sin_w * cos_N + cos_w * sin_N * cos_i);
+                const y_hel = x_orb * (cos_w * sin_N + sin_w * cos_N * cos_i) - y_orb * (sin_w * sin_N - cos_w * cos_N * cos_i);
+                const z_hel = x_orb * (sin_w * sin_i) + y_orb * (cos_w * sin_i);
+                
+                // 5. Coordinate Geocentriche Eclittiche
+                const x_geo = x_hel - earthHel.x;
+                const y_geo = y_hel - earthHel.y;
+                const z_geo = z_hel - earthHel.z;
+                
+                // 6. Rotazione in Equatoriale J2000
+                const x_eq = x_geo;
+                const y_eq = y_geo * cos_eps - z_geo * sin_eps;
+                const z_eq = y_geo * sin_eps + z_geo * cos_eps;
+                
+                // 7. Calcolo RA & Dec
+                let RA_rad = Math.atan2(y_eq, x_eq);
+                if (RA_rad < 0) RA_rad += 2 * Math.PI;
+                const Dec_rad = Math.atan2(z_eq, Math.hypot(x_eq, y_eq));
+                
+                ra = RA_rad * 12 / Math.PI;
+                dec = Dec_rad * 180 / Math.PI;
+                
+                // 8. Conversione all'orizzonte dell'osservatore
+                const hor = Astronomy.Horizon(astroTime, observer, ra, dec, 'normal');
+                alt = hor.altitude;
+                az = hor.azimuth;
+                isVisible = alt > 0;
+            } catch(e) {
+                console.error(`Errore nel calcolo del corpo ${d.name}:`, e);
+            }
+        }
+        
+        const cardDir = getCardinalDirection(az);
+        
+        cardsHtml += `
+            <div class="planet-card" style="--planet-color: ${d.color}; cursor: default;">
+                <div class="planet-header">
+                    <div class="planet-info">
+                        <div class="planet-dot" style="background-color: ${d.color}"></div>
+                        <span class="planet-name" style="font-size: 1rem;">${d.name}</span>
+                    </div>
+                    <span class="visibility-badge ${isVisible ? 'visible' : 'invisible'}">
+                        ${isVisible ? 'Visibile' : 'Non Visibile'}
+                    </span>
+                </div>
+                
+                <div class="planet-coords">
+                    <div class="coord-box">
+                        <span class="coord-label">Altezza</span>
+                        <span class="coord-val">${alt.toFixed(2)}°</span>
+                    </div>
+                    <div class="coord-box">
+                        <span class="coord-label">Azimut</span>
+                        <span class="coord-val">${az.toFixed(1)}° (${cardDir})</span>
+                    </div>
+                </div>
+                
+                <div class="planet-times" style="font-size: 0.72rem; color: var(--text-secondary); display: flex; justify-content: space-between; border-top: 1px solid rgba(255, 255, 255, 0.05); padding-top: 0.5rem; margin-top: 0.25rem;">
+                    <span>AR: ${formatRA(ra)}</span>
+                    <span>Dec: ${dec.toFixed(2)}°</span>
+                    <span style="color: var(--text-muted); font-size: 0.65rem; font-weight: 600; text-transform: uppercase;">${d.type}</span>
+                </div>
+            </div>
+        `;
+    });
+    
+    dom.dwarfsGrid.innerHTML = cardsHtml;
 }
