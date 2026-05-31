@@ -156,6 +156,7 @@ header {
     display: flex;
     flex-direction: column;
     gap: 1.5rem;
+    min-width: 0;
 }
 
 .panel {
@@ -322,6 +323,7 @@ input:checked + .slider:before {
     display: flex;
     flex-direction: column;
     gap: 2rem;
+    min-width: 0;
 }
 
 /* Griglia delle schede dei pianeti */
@@ -792,7 +794,7 @@ footer {
 /* Ottimizzazioni per schermi mobile verticali */
 @media (max-width: 767px) {
     html, body {
-        width: 100vw;
+        width: 100%;
         max-width: 100%;
         overflow-x: hidden;
     }
@@ -853,6 +855,14 @@ footer {
     .iss-table th, .iss-table td {
         padding: 0.45rem 0.5rem;
         font-size: 0.72rem;
+    }
+    
+    /* Impedisce al canvas delle lune di esplodere in larghezza su mobile */
+    .canvas-container {
+        min-height: auto !important;
+        aspect-ratio: 16/9;
+        width: 100%;
+        max-width: 100%;
     }
     
     /* Riduce dimensione caratteri e pulsanti su mobile */
