@@ -2850,6 +2850,68 @@ function calculatePlanisphere() {
     planisphereStarsGroup.innerHTML = starsHtml;
     planisphereConstellationsGroup.innerHTML = constellationsHtml;
     planispherePlanetsGroup.innerHTML = planetsHtml;
+    
+    // 4. Disegna le comete visibili sulla cupola celeste
+    let planisphereCometsGroup = document.getElementById('planisphereCometsGroup');
+    if (!planisphereCometsGroup) {
+        const innerGroup = document.getElementById('planisphereInnerGroup');
+        if (innerGroup) {
+            planisphereCometsGroup = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+            planisphereCometsGroup.id = 'planisphereCometsGroup';
+            innerGroup.appendChild(planisphereCometsGroup);
+        }
+    }
+    
+    let cometsHtml = '';
+    if (planisphereCometsGroup && cometsCache && cometsCache.length > 0) {
+        cometsCache.forEach(comet => {
+            if (comet.best_ra && comet.best_dec) {
+                try {
+                    const raHours = parseRAToHours(comet.best_ra);
+                    const decDeg = parseDecToDegrees(comet.best_dec);
+                    const hor = Astronomy.Horizon(astroTime, observer, raHours, decDeg, 'normal');
+                    
+                    if (hor.altitude > 0) {
+                        const r = 90 * (90 - hor.altitude) / 90;
+                        const angleRad = (hor.azimuth - 90) * Math.PI / 180;
+                        const x = 100 + r * Math.cos(angleRad);
+                        const y = 100 + r * Math.sin(angleRad);
+                        
+                        // Direzione della coda della cometa opposta al Sole (o indicativa rispetto all'angolo radiale)
+                        const tailLen = 7.0;
+                        const spread = 0.22; // Circa 12 gradi di apertura
+                        const tailAngle = angleRad; // Punti all'esterno (via dal centro)
+                        
+                        const tx1 = x + tailLen * Math.cos(tailAngle - spread);
+                        const ty1 = y + tailLen * Math.sin(tailAngle - spread);
+                        const tx2 = x + tailLen * Math.cos(tailAngle + spread);
+                        const ty2 = y + tailLen * Math.sin(tailAngle + spread);
+                        const tx3 = x + (tailLen * 0.8) * Math.cos(tailAngle);
+                        const ty3 = y + (tailLen * 0.8) * Math.sin(tailAngle);
+                        
+                        cometsHtml += `
+                            <g>
+                                <!-- Coda a ventaglio sfumata della cometa (struttura principale tridimensionale) -->
+                                <polygon points="${x},${y} ${tx1},${ty1} ${tx2},${ty2}" fill="rgba(192, 132, 252, 0.35)" stroke="rgba(192, 132, 252, 0.15)" stroke-width="0.3" style="filter: drop-shadow(0 0 1px rgba(192, 132, 252, 0.4));" />
+                                <!-- Coda centrale ionica (più densa e luminosa) -->
+                                <line x1="${x}" y1="${y}" x2="${tx3}" y2="${ty3}" style="stroke: rgba(216, 180, 254, 0.85); stroke-width: 0.8px; stroke-linecap: round;" />
+                                <!-- Nucleo della cometa -->
+                                <circle cx="${x}" cy="${y}" r="1.4" fill="#c084fc" style="stroke: #fff; stroke-width: 0.35px; filter: drop-shadow(0 0 2px #c084fc); cursor: pointer;">
+                                    <title>${comet.comet_fullname || comet.comet_name} (Alt: ${hor.altitude.toFixed(1)}°, Az: ${hor.azimuth.toFixed(1)}°, Mag: ${comet.magnitude !== null ? comet.magnitude.toFixed(1) : '--'})</title>
+                                </circle>
+                                <text x="${x}" y="${y - 4}" fill="#c084fc" font-size="3.8" font-weight="600" text-anchor="middle" font-family="var(--font-sans)">${comet.comet_name}</text>
+                            </g>
+                        `;
+                    }
+                } catch(e) {
+                    console.error(`Errore nel calcolo del planisfero per la cometa:`, e);
+                }
+            }
+        });
+    }
+    if (planisphereCometsGroup) {
+        planisphereCometsGroup.innerHTML = cometsHtml;
+    }
 }
 
 // Caching e limitazione tentativi per le comete
@@ -2924,6 +2986,7 @@ function fetchComets() {
                 lastCometsFetchParams = { lat: state.lat, lon: state.lon, date: formattedDate };
                 cometsFetchAttempts = 0; // Reset dei tentativi
                 updateCometsTable(data.comet_list);
+                calculatePlanisphere();
             } else {
                 if (cometsContent) {
                     cometsContent.innerHTML = '<div class="iss-no-passes">Nessuna cometa visibile stasera sotto magnitudine 15.</div>';
@@ -2949,7 +3012,29 @@ function fetchComets() {
         });
 }
 
-// Aggiorna la tabella delle comete nell'interfaccia utente (ora con orario di sorgere, tramonto e costellazione)
+// Utility per convertire Ascensione Retta (HH:MM:SS) in ore decimali
+function parseRAToHours(raStr) {
+    if (!raStr) return 0;
+    const parts = raStr.split(':');
+    const h = parseFloat(parts[0] || 0);
+    const m = parseFloat(parts[1] || 0);
+    const s = parseFloat(parts[2] || 0);
+    return h + (m / 60) + (s / 3600);
+}
+
+// Utility per convertire Declinazione (DD:MM:SS) in gradi decimali (gestendo i valori negativi)
+function parseDecToDegrees(decStr) {
+    if (!decStr) return 0;
+    const isNegative = decStr.trim().startsWith('-');
+    const parts = decStr.split(':');
+    const d = Math.abs(parseFloat(parts[0] || 0));
+    const m = parseFloat(parts[1] || 0);
+    const s = parseFloat(parts[2] || 0);
+    const val = d + (m / 60) + (s / 3600);
+    return isNegative ? -val : val;
+}
+
+// Aggiorna la tabella delle comete nell'interfaccia utente (con orari, costellazione, RA/Dec e Alt/Az in tempo reale)
 function updateCometsTable(cometList) {
     const cometsContent = document.getElementById('cometsContent');
     if (!cometsContent) return;
@@ -2960,6 +3045,9 @@ function updateCometsTable(cometList) {
     }
 
     const activeDate = getActiveDate();
+    const observer = new Astronomy.Observer(state.lat, state.lon, state.alt);
+    const astroTime = Astronomy.MakeTime(activeDate);
+
     const pad = (n) => String(n).padStart(2, '0');
     const formattedDate = `${activeDate.getFullYear()}-${pad(activeDate.getMonth() + 1)}-${pad(activeDate.getDate())}`;
 
@@ -2973,10 +3061,9 @@ function updateCometsTable(cometList) {
                     <tr>
                         <th style="text-align: left;">Cometa</th>
                         <th>Mag.</th>
-                        <th>Sorgere</th>
-                        <th>Tramonto</th>
-                        <th>Ora Migliore (Alt)</th>
-                        <th>Elong. (S / L)</th>
+                        <th>Sorgere / Tramonto</th>
+                        <th>Pos. Attuale (Alt / Az)</th>
+                        <th>Ora Migliore (Alt Max)</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -3004,7 +3091,6 @@ function updateCometsTable(cometList) {
                 const parts = comet.set_time.split(' ');
                 if (parts.length > 1) {
                     setStr = parts[1];
-                    // Se tramonta il giorno successivo, aggiunge un grazioso indicatore +1g
                     if (parts[0] !== formattedDate) {
                         setStr += ' <span style="font-size: 0.65rem; opacity: 0.6; font-weight: normal;">+1g</span>';
                     }
@@ -3030,8 +3116,10 @@ function updateCometsTable(cometList) {
         const isHigh = altVal !== null && altVal > 15;
         const altColor = isHigh ? 'style="color: #a855f7; font-weight: 600;"' : 'style="color: var(--text-muted);"';
 
-        // Estrazione e formattazione RA/Dec per il puntamento telescopico
+        // 1. Estrazione e formattazione RA/Dec per il puntamento telescopico
         let coordStr = '';
+        let currentAltAzHtml = '-- / --';
+        
         if (comet.best_ra && comet.best_dec) {
             try {
                 const raParts = comet.best_ra.split(':');
@@ -3041,10 +3129,27 @@ function updateCometsTable(cometList) {
                 const raM = raParts[1] || '00';
                 const decD = decParts[0];
                 const decM = decParts[1] || '00';
+
+                // 2. Calcolo Alt/Az in tempo reale tramite Astronomy Engine
+                const raHours = parseRAToHours(comet.best_ra);
+                const decDeg = parseDecToDegrees(comet.best_dec);
+                const hor = Astronomy.Horizon(astroTime, observer, raHours, decDeg, 'normal');
                 
-                coordStr = ` — RA: ${raH}h ${raM}m | DEC: ${decD}° ${decM}'`;
+                const currentAlt = hor.altitude;
+                const currentAz = hor.azimuth;
+                const currentCardDir = getCardinalDirection(currentAz);
+                
+                const isCurrentlyVisible = currentAlt > 0;
+                const currentAltColor = isCurrentlyVisible ? 'style="color: #22c55e; font-weight: 600;"' : 'style="color: var(--text-muted);"';
+                const currentAltStr = `${currentAlt > 0 ? '+' : ''}${currentAlt.toFixed(1)}°`;
+                
+                currentAltAzHtml = `<span ${currentAltColor}>${currentAltStr}</span> / ${currentAz.toFixed(0)}° (${currentCardDir})`;
+                
+                // Formatta le coordinate equatoriali + Alt/Az in tempo reale accanto al nome della costellazione
+                coordStr = ` — RA: ${raH}h ${raM}m | DEC: ${decD}° ${decM}' | Alt: ${currentAltStr} | Az: ${currentAz.toFixed(0)}° (${currentCardDir})`;
             } catch (e) {
                 coordStr = ` — RA: ${comet.best_ra} | DEC: ${comet.best_dec}`;
+                console.error("Errore nel calcolo Alt/Az reale della cometa:", e);
             }
         }
 
@@ -3057,10 +3162,9 @@ function updateCometsTable(cometList) {
                     ${comet.constelation ? `<span style="font-size: 0.68rem; color: #c084fc; font-weight: 500;">(${comet.constelation}${coordStr})</span>` : ''}
                 </td>
                 <td ${magColor}>${comet.magnitude !== null ? comet.magnitude.toFixed(1) : '--'}</td>
-                <td style="font-family: var(--font-mono);">${riseStr}</td>
-                <td style="font-family: var(--font-mono);">${setStr}</td>
+                <td style="font-family: var(--font-mono);">${riseStr} / ${setStr}</td>
+                <td style="font-family: var(--font-mono);">${currentAltAzHtml}</td>
                 <td style="font-family: var(--font-mono);"><span style="color: #fff;">${bestTimeStr}</span> <span ${altColor}>(${altVal !== null ? altVal.toFixed(1) + '°' : '--'})</span></td>
-                <td style="font-size: 0.75rem; color: var(--text-secondary);">${comet.sun_elongation !== null ? comet.sun_elongation + '°' : '--'} / ${comet.moon_elongation !== null ? comet.moon_elongation + '°' : '--'}</td>
             </tr>
         `;
     });
