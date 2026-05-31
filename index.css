@@ -911,14 +911,14 @@ footer {
         width: 100% !important;
         height: auto !important;
         aspect-ratio: 1 !important;
-        max-width: 440px !important;
+        max-width: 520px !important;
     }
 }
 
 /* Stile specifico per ingrandire il Planisfero Celeste su desktop */
 #planisphereSection .compass-svg-wrapper {
-    width: 600px;
-    height: 600px;
+    width: 640px;
+    height: 640px;
     max-width: 100%;
     margin: 0 auto;
 }

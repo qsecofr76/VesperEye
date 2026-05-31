@@ -229,9 +229,17 @@ const state = {
     map: null,
     mapActive: false,
     mapZoom: 15,
-    skyOpacity: 65, // Opacità della volta celeste (10% - 100%)
+    skyOpacity: 80, // Opacità della volta celeste (0% - 100%)
     mapType: 'dark', // 'dark' o 'satellite'
-    mapLayers: {}
+    mapLayers: {},
+
+    // Filtri di visualizzazione planisfero
+    filterStars: true,
+    filterConstellations: true,
+    filterPlanets: true,
+    filterComets: true,
+    filterRays: true,
+    filterGrid: true
 };
 
 // Stato tracciamento ISS
@@ -305,7 +313,15 @@ function initDOM() {
         sliderSkyOpacity: document.getElementById('sliderSkyOpacity'),
         skyOpacityDisplay: document.getElementById('skyOpacityDisplay'),
         planisphereMap: document.getElementById('planisphereMap'),
-        planisphereSvg: document.getElementById('planisphereSvg')
+        planisphereSvg: document.getElementById('planisphereSvg'),
+        
+        // Filtri di visualizzazione
+        filterStars: document.getElementById('filterStars'),
+        filterConstellations: document.getElementById('filterConstellations'),
+        filterPlanets: document.getElementById('filterPlanets'),
+        filterComets: document.getElementById('filterComets'),
+        filterRays: document.getElementById('filterRays'),
+        filterGrid: document.getElementById('filterGrid')
     };
     // Rimuovi o metti in sicurezza se gli elementi non esistono
     ctx = dom.moonsCanvas.getContext('2d');
@@ -553,8 +569,8 @@ function setupEventListeners() {
         
         // Eventi Touch (Mobile)
         planisphereSvg.addEventListener('touchstart', handleDragStart, { passive: false });
-        window.addEventListener('touchmove', handleDragMove, { passive: false });
-        window.addEventListener('touchend', handleDragEnd);
+        planisphereSvg.addEventListener('touchmove', handleDragMove, { passive: false });
+        planisphereSvg.addEventListener('touchend', handleDragEnd);
     }
 
     // Gestione ridimensionamento Canvas
@@ -613,6 +629,17 @@ function setupEventListeners() {
             updateSkyOpacity();
         });
     }
+
+    // Listeners per i filtri di visualizzazione del planisfero
+    ['Stars', 'Constellations', 'Planets', 'Comets', 'Rays', 'Grid'].forEach(filter => {
+        const domEl = dom[`filter${filter}`];
+        if (domEl) {
+            domEl.addEventListener('change', (e) => {
+                state[`filter${filter}`] = e.target.checked;
+                calculatePlanisphere();
+            });
+        }
+    });
 }
 
 // Funzione di debug per interrogare le API ufficiali NASA JPL Horizons
@@ -1731,7 +1758,7 @@ function renderSaturnSystem(cx, cy, w, h) {
     
     // Raggio del corpo di Saturno sul canvas
     const satRadius = Math.min(w, h) * 0.06;
-    // Scala per i satelliti: regolata per far stare Titan (20 RS) perfettamente sul canvas
+    // Scala per i satelliti: regolata per far stare Titano (20 RS) perfettamente sul canvas
     const scale = satRadius * 0.55;
 
     // Recupera le coordinate eclittiche e la distanza geocentrica reali di Saturno tramite Astronomy Engine
@@ -2884,22 +2911,22 @@ function calculatePlanisphere() {
                 starsCoords[s.name] = { x, y };
                 
                 // Diametro in base alla magnitudine apparente (più luminosa = cerchio più grande)
-                if (!s.hidden) {
-                    let radius = 0.8;
-                    if (s.mag < 0) radius = 2.4;
-                    else if (s.mag < 1.0) radius = 1.8;
-                    else if (s.mag < 2.0) radius = 1.3;
+                if (!s.hidden && state.filterStars) {
+                    let radius = 1.2;
+                    if (s.mag < 0) radius = 3.2;
+                    else if (s.mag < 1.0) radius = 2.4;
+                    else if (s.mag < 2.0) radius = 1.8;
                     
                     starsHtml += `
-                        <circle cx="${x}" cy="${y}" r="${radius}" fill="#fff" style="opacity: 0.95; filter: drop-shadow(0 0 1px #fff);">
+                        <circle cx="${x}" cy="${y}" r="${radius}" fill="#fff" style="opacity: 0.95; filter: drop-shadow(0 0 2px #fff);">
                             <title>${s.name} (Alt: ${alt.toFixed(1)}°, Az: ${az.toFixed(1)}°, Mag: ${s.mag})</title>
                         </circle>
                     `;
                     
-                    // Etichette di testo solo per le stelle più brillanti (mag < 1.5) per non affollare la mappa
+                    // Etichette di testo solo per le stelle più brillanti (mag < 1.3) per non affollare la mappa
                     if (s.mag < 1.3 || s.name === "Stella Polare") {
                         starsHtml += `
-                            <text x="${x}" y="${y - 4}" fill="rgba(255,255,255,0.4)" font-size="4" font-weight="500" text-anchor="middle" font-family="var(--font-sans)">${s.name}</text>
+                            <text x="${x}" y="${y - 5.5}" fill="#ffffff" font-size="5.5" font-weight="600" text-anchor="middle" font-family="var(--font-sans)" style="stroke: #020617; stroke-width: 0.8px; paint-order: stroke fill; stroke-linejoin: round;">${s.name}</text>
                         `;
                     }
                 }
@@ -2910,16 +2937,18 @@ function calculatePlanisphere() {
     });
     
     // 2. Disegna le linee delle costellazioni
-    CONSTELLATIONS.forEach(c => {
-        const starFrom = starsCoords[c.from];
-        const starTo = starsCoords[c.to];
-        
-        if (starFrom && starTo) {
-            constellationsHtml += `
-                <line x1="${starFrom.x}" y1="${starFrom.y}" x2="${starTo.x}" y2="${starTo.y}" style="stroke: rgba(168, 85, 247, 0.35); stroke-width: 0.5px; stroke-dasharray: 1 1;" />
-            `;
-        }
-    });
+    if (state.filterConstellations) {
+        CONSTELLATIONS.forEach(c => {
+            const starFrom = starsCoords[c.from];
+            const starTo = starsCoords[c.to];
+            
+            if (starFrom && starTo) {
+                constellationsHtml += `
+                    <line x1="${starFrom.x}" y1="${starFrom.y}" x2="${starTo.x}" y2="${starTo.y}" style="stroke: rgba(168, 85, 247, 0.45); stroke-width: 0.7px; stroke-dasharray: 2 2;" />
+                `;
+            }
+        });
+    }
     
     // Scrive il nome della costellazione al centro geometrico delle sue stelle visibili
     const constellationLabels = [
@@ -2939,53 +2968,57 @@ function calculatePlanisphere() {
         { name: "Ercole", stars: ["Kornephoros", "Zeta Her", "Rutilicus", "Pi Her", "Epsilon Her"] }
     ];
     
-    constellationLabels.forEach(cl => {
-        let sumX = 0;
-        let sumY = 0;
-        let count = 0;
-        
-        cl.stars.forEach(sName => {
-            const star = starsCoords[sName];
-            if (star) {
-                sumX += star.x;
-                sumY += star.y;
-                count++;
-            }
-        });
-        
-        if (count > 0) {
-            const centerX = sumX / count;
-            const centerY = sumY / count;
-            constellationsHtml += `
-                <text x="${centerX}" y="${centerY + 5}" fill="rgba(168, 85, 247, 0.65)" font-size="4.5" font-weight="600" text-anchor="middle" font-family="var(--font-sans)">${cl.name}</text>
-            `;
-        }
-    });
-    
-    // 3. Disegna i pianeti maggiori visibili sulla cupola celere
-    PLANETS.forEach(p => {
-        try {
-            const bodyEnum = Astronomy.Body[p.body];
-            const equ = Astronomy.Equator(bodyEnum, astroTime, observer, true, true);
-            const hor = Astronomy.Horizon(astroTime, observer, equ.ra, equ.dec, 'normal');
+    if (state.filterConstellations) {
+        constellationLabels.forEach(cl => {
+            let sumX = 0;
+            let sumY = 0;
+            let count = 0;
             
-            if (hor.altitude > 0) {
-                const r = 90 * (90 - hor.altitude) / 90;
-                const angleRad = (hor.azimuth - 90) * Math.PI / 180;
-                const x = 100 + r * Math.cos(angleRad);
-                const y = 100 + r * Math.sin(angleRad);
-                
-                planetsHtml += `
-                    <circle cx="${x}" cy="${y}" r="2" fill="${p.color}" style="stroke: #fff; stroke-width: 0.4px; filter: drop-shadow(0 0 2px ${p.color}); cursor: pointer;" onclick="selectPlanet('${p.id}')">
-                        <title>${p.name} (Alt: ${hor.altitude.toFixed(1)}°, Az: ${hor.azimuth.toFixed(1)}°)</title>
-                    </circle>
-                    <text x="${x}" y="${y - 4.5}" fill="${p.color}" font-size="4.2" font-weight="700" text-anchor="middle" font-family="var(--font-sans)">${p.name}</text>
+            cl.stars.forEach(sName => {
+                const star = starsCoords[sName];
+                if (star) {
+                    sumX += star.x;
+                    sumY += star.y;
+                    count++;
+                }
+            });
+            
+            if (count > 0) {
+                const centerX = sumX / count;
+                const centerY = sumY / count;
+                constellationsHtml += `
+                    <text x="${centerX}" y="${centerY + 6}" fill="#c084fc" font-size="7.5" font-weight="700" text-anchor="middle" font-family="var(--font-sans)" style="stroke: #020617; stroke-width: 1.2px; paint-order: stroke fill; stroke-linejoin: round;">${cl.name}</text>
                 `;
             }
-        } catch(e) {
-            console.error(`Errore nel calcolo del pianeta ${p.name} per planisfero:`, e);
-        }
-    });
+        });
+    }
+    
+    // 3. Disegna i pianeti maggiori visibili sulla cupola celere
+    if (state.filterPlanets) {
+        PLANETS.forEach(p => {
+            try {
+                const bodyEnum = Astronomy.Body[p.body];
+                const equ = Astronomy.Equator(bodyEnum, astroTime, observer, true, true);
+                const hor = Astronomy.Horizon(astroTime, observer, equ.ra, equ.dec, 'normal');
+                
+                if (hor.altitude > 0) {
+                    const r = 90 * (90 - hor.altitude) / 90;
+                    const angleRad = (hor.azimuth - 90) * Math.PI / 180;
+                    const x = 100 + r * Math.cos(angleRad);
+                    const y = 100 + r * Math.sin(angleRad);
+                    
+                    planetsHtml += `
+                        <circle cx="${x}" cy="${y}" r="3" fill="${p.color}" style="stroke: #fff; stroke-width: 0.5px; filter: drop-shadow(0 0 3px ${p.color}); cursor: pointer;" onclick="selectPlanet('${p.id}')">
+                            <title>${p.name} (Alt: ${hor.altitude.toFixed(1)}°, Az: ${hor.azimuth.toFixed(1)}°)</title>
+                        </circle>
+                        <text x="${x}" y="${y - 6}" fill="${p.color}" font-size="6" font-weight="700" text-anchor="middle" font-family="var(--font-sans)" style="stroke: #020617; stroke-width: 1px; paint-order: stroke fill; stroke-linejoin: round;">${p.name}</text>
+                    `;
+                }
+            } catch(e) {
+                console.error(`Errore nel calcolo del pianeta ${p.name} per planisfero:`, e);
+            }
+        });
+    }
     
     planisphereStarsGroup.innerHTML = starsHtml;
     planisphereConstellationsGroup.innerHTML = constellationsHtml;
@@ -2994,7 +3027,7 @@ function calculatePlanisphere() {
     // 3.5. Disegna i raggi di azimut sul planisfero (Alba, Tramonto, Sorgere Luna, Posizioni Reali)
     const planisphereAzimuthRaysGroup = document.getElementById('planisphereAzimuthRaysGroup');
     let raysHtml = '';
-    if (planisphereAzimuthRaysGroup) {
+    if (state.filterRays && planisphereAzimuthRaysGroup) {
         try {
             const dateStart = new Date(activeDate.getFullYear(), activeDate.getMonth(), activeDate.getDate(), 0, 0, 0);
             const startAstroTime = Astronomy.MakeTime(dateStart);
@@ -3011,8 +3044,8 @@ function calculatePlanisphere() {
                 const tx = 100 + 81 * Math.cos(angleRad);
                 const ty = 100 + 81 * Math.sin(angleRad);
                 raysHtml += `
-                    <line x1="100" y1="100" x2="${x}" y2="${y}" stroke="#f59e0b" stroke-width="0.8" stroke-dasharray="1.5 1.5" style="opacity: 0.65; filter: drop-shadow(0 0 1.5px #f59e0b);" />
-                    <text x="${tx}" y="${ty}" fill="#f59e0b" font-size="3.8" font-weight="700" text-anchor="middle" dominant-baseline="middle" font-family="var(--font-sans)" style="filter: drop-shadow(0 0 1px #000);">Alba</text>
+                    <line x1="100" y1="100" x2="${x}" y2="${y}" stroke="#f59e0b" stroke-width="1.2" stroke-dasharray="2 2" style="opacity: 0.75; filter: drop-shadow(0 0 2px #f59e0b);" />
+                    <text x="${tx}" y="${ty}" fill="#f59e0b" font-size="6" font-weight="700" text-anchor="middle" dominant-baseline="middle" font-family="var(--font-sans)" style="stroke: #020617; stroke-width: 1px; paint-order: stroke fill; stroke-linejoin: round;">Alba</text>
                 `;
             }
             
@@ -3028,8 +3061,8 @@ function calculatePlanisphere() {
                 const tx = 100 + 81 * Math.cos(angleRad);
                 const ty = 100 + 81 * Math.sin(angleRad);
                 raysHtml += `
-                    <line x1="100" y1="100" x2="${x}" y2="${y}" stroke="#ef4444" stroke-width="0.8" stroke-dasharray="1.5 1.5" style="opacity: 0.65; filter: drop-shadow(0 0 1.5px #ef4444);" />
-                    <text x="${tx}" y="${ty}" fill="#ef4444" font-size="3.8" font-weight="700" text-anchor="middle" dominant-baseline="middle" font-family="var(--font-sans)" style="filter: drop-shadow(0 0 1px #000);">Tramonto</text>
+                    <line x1="100" y1="100" x2="${x}" y2="${y}" stroke="#ef4444" stroke-width="1.2" stroke-dasharray="2 2" style="opacity: 0.75; filter: drop-shadow(0 0 2px #ef4444);" />
+                    <text x="${tx}" y="${ty}" fill="#ef4444" font-size="6" font-weight="700" text-anchor="middle" dominant-baseline="middle" font-family="var(--font-sans)" style="stroke: #020617; stroke-width: 1px; paint-order: stroke fill; stroke-linejoin: round;">Tramonto</text>
                 `;
             }
             
@@ -3045,8 +3078,8 @@ function calculatePlanisphere() {
                 const tx = 100 + 81 * Math.cos(angleRad);
                 const ty = 100 + 81 * Math.sin(angleRad);
                 raysHtml += `
-                    <line x1="100" y1="100" x2="${x}" y2="${y}" stroke="#38bdf8" stroke-width="0.8" stroke-dasharray="1.5 1.5" style="opacity: 0.65; filter: drop-shadow(0 0 1.5px #38bdf8);" />
-                    <text x="${tx}" y="${ty}" fill="#38bdf8" font-size="3.5" font-weight="700" text-anchor="middle" dominant-baseline="middle" font-family="var(--font-sans)" style="filter: drop-shadow(0 0 1px #000);">Sorg. Luna</text>
+                    <line x1="100" y1="100" x2="${x}" y2="${y}" stroke="#38bdf8" stroke-width="1.2" stroke-dasharray="2 2" style="opacity: 0.75; filter: drop-shadow(0 0 2px #38bdf8);" />
+                    <text x="${tx}" y="${ty}" fill="#38bdf8" font-size="5.5" font-weight="700" text-anchor="middle" dominant-baseline="middle" font-family="var(--font-sans)" style="stroke: #020617; stroke-width: 1px; paint-order: stroke fill; stroke-linejoin: round;">Sorg. Luna</text>
                 `;
             }
             
@@ -3062,8 +3095,8 @@ function calculatePlanisphere() {
                 const tx = 100 + 81 * Math.cos(angleRad);
                 const ty = 100 + 81 * Math.sin(angleRad);
                 raysHtml += `
-                    <line x1="100" y1="100" x2="${x}" y2="${y}" stroke="#6366f1" stroke-width="0.8" stroke-dasharray="1.5 1.5" style="opacity: 0.65; filter: drop-shadow(0 0 1.5px #6366f1);" />
-                    <text x="${tx}" y="${ty}" fill="#6366f1" font-size="3.5" font-weight="700" text-anchor="middle" dominant-baseline="middle" font-family="var(--font-sans)" style="filter: drop-shadow(0 0 1px #000);">Tram. Luna</text>
+                    <line x1="100" y1="100" x2="${x}" y2="${y}" stroke="#6366f1" stroke-width="1.2" stroke-dasharray="2 2" style="opacity: 0.75; filter: drop-shadow(0 0 2px #6366f1);" />
+                    <text x="${tx}" y="${ty}" fill="#6366f1" font-size="5.5" font-weight="700" text-anchor="middle" dominant-baseline="middle" font-family="var(--font-sans)" style="stroke: #020617; stroke-width: 1px; paint-order: stroke fill; stroke-linejoin: round;">Tram. Luna</text>
                 `;
             }
 
@@ -3074,7 +3107,7 @@ function calculatePlanisphere() {
             const sunX = 100 + 90 * Math.cos(sunAngleRad);
             const sunY = 100 + 90 * Math.sin(sunAngleRad);
             raysHtml += `
-                <line x1="100" y1="100" x2="${sunX}" y2="${sunY}" stroke="#eab308" stroke-dasharray="2.5 2.5" stroke-width="0.55" style="opacity: 0.45; filter: drop-shadow(0 0 1px #eab308);" />
+                <line x1="100" y1="100" x2="${sunX}" y2="${sunY}" stroke="#eab308" stroke-dasharray="3 3" stroke-width="0.8" style="opacity: 0.6; filter: drop-shadow(0 0 1.5px #eab308);" />
             `;
 
             // Posizione Luna Istantanea (Tratteggiata argento)
@@ -3084,7 +3117,7 @@ function calculatePlanisphere() {
             const moonX = 100 + 90 * Math.cos(moonAngleRad);
             const moonY = 100 + 90 * Math.sin(moonAngleRad);
             raysHtml += `
-                <line x1="100" y1="100" x2="${moonX}" y2="${moonY}" stroke="#e2e8f0" stroke-dasharray="2.5 2.5" stroke-width="0.55" style="opacity: 0.45; filter: drop-shadow(0 0 1px #e2e8f0);" />
+                <line x1="100" y1="100" x2="${moonX}" y2="${moonY}" stroke="#e2e8f0" stroke-dasharray="3 3" stroke-width="0.8" style="opacity: 0.6; filter: drop-shadow(0 0 1.5px #e2e8f0);" />
             `;
         } catch(e) {
             console.error("Errore nel calcolo dei raggi di azimut sul planisfero:", e);
@@ -3104,7 +3137,7 @@ function calculatePlanisphere() {
     }
     
     let cometsHtml = '';
-    if (planisphereCometsGroup && cometsCache && cometsCache.length > 0) {
+    if (state.filterComets && planisphereCometsGroup && cometsCache && cometsCache.length > 0) {
         cometsCache.forEach(comet => {
             if (comet.best_ra && comet.best_dec) {
                 try {
@@ -3119,28 +3152,28 @@ function calculatePlanisphere() {
                         const y = 100 + r * Math.sin(angleRad);
                         
                         // Direzione della coda della cometa opposta al Sole (o indicativa rispetto all'angolo radiale)
-                        const tailLen = 7.0;
-                        const spread = 0.22; // Circa 12 gradi di apertura
+                        const tailLen = 8.5;
+                        const spread = 0.25; // Circa 14 gradi di apertura
                         const tailAngle = angleRad; // Punti all'esterno (via dal centro)
                         
                         const tx1 = x + tailLen * Math.cos(tailAngle - spread);
                         const ty1 = y + tailLen * Math.sin(tailAngle - spread);
                         const tx2 = x + tailLen * Math.cos(tailAngle + spread);
                         const ty2 = y + tailLen * Math.sin(tailAngle + spread);
-                        const tx3 = x + (tailLen * 0.8) * Math.cos(tailAngle);
-                        const ty3 = y + (tailLen * 0.8) * Math.sin(tailAngle);
+                        const tx3 = x + (tailLen * 0.9) * Math.cos(tailAngle);
+                        const ty3 = y + (tailLen * 0.9) * Math.sin(tailAngle);
                         
                         cometsHtml += `
                             <g>
                                 <!-- Coda a ventaglio sfumata della cometa (struttura principale tridimensionale) -->
-                                <polygon points="${x},${y} ${tx1},${ty1} ${tx2},${ty2}" fill="rgba(192, 132, 252, 0.35)" stroke="rgba(192, 132, 252, 0.15)" stroke-width="0.3" style="filter: drop-shadow(0 0 1px rgba(192, 132, 252, 0.4));" />
+                                <polygon points="${x},${y} ${tx1},${ty1} ${tx2},${ty2}" fill="rgba(192, 132, 252, 0.4)" stroke="rgba(192, 132, 252, 0.2)" stroke-width="0.4" style="filter: drop-shadow(0 0 1.5px rgba(192, 132, 252, 0.5));" />
                                 <!-- Coda centrale ionica (più densa e luminosa) -->
-                                <line x1="${x}" y1="${y}" x2="${tx3}" y2="${ty3}" style="stroke: rgba(216, 180, 254, 0.85); stroke-width: 0.8px; stroke-linecap: round;" />
+                                <line x1="${x}" y1="${y}" x2="${tx3}" y2="${ty3}" style="stroke: rgba(216, 180, 254, 0.9); stroke-width: 1.1px; stroke-linecap: round;" />
                                 <!-- Nucleo della cometa -->
-                                <circle cx="${x}" cy="${y}" r="1.4" fill="#c084fc" style="stroke: #fff; stroke-width: 0.35px; filter: drop-shadow(0 0 2px #c084fc); cursor: pointer;">
+                                <circle cx="${x}" cy="${y}" r="2" fill="#c084fc" style="stroke: #fff; stroke-width: 0.5px; filter: drop-shadow(0 0 3px #c084fc); cursor: pointer;">
                                     <title>${comet.comet_fullname || comet.comet_name} (Alt: ${hor.altitude.toFixed(1)}°, Az: ${hor.azimuth.toFixed(1)}°, Mag: ${comet.magnitude !== null ? comet.magnitude.toFixed(1) : '--'})</title>
                                 </circle>
-                                <text x="${x}" y="${y - 4}" fill="#c084fc" font-size="3.8" font-weight="600" text-anchor="middle" font-family="var(--font-sans)">${comet.comet_name}</text>
+                                <text x="${x}" y="${y - 4.5}" fill="#c084fc" font-size="5.5" font-weight="700" text-anchor="middle" font-family="var(--font-sans)" style="stroke: #020617; stroke-width: 0.8px; paint-order: stroke fill; stroke-linejoin: round;">${comet.comet_name}</text>
                             </g>
                         `;
                     }
@@ -3152,6 +3185,12 @@ function calculatePlanisphere() {
     }
     if (planisphereCometsGroup) {
         planisphereCometsGroup.innerHTML = cometsHtml;
+    }
+    
+    // Gestione visibilità della griglia celeste concentrica/radiale
+    const planisphereGridGroup = document.getElementById('planisphereGridGroup');
+    if (planisphereGridGroup) {
+        planisphereGridGroup.style.display = state.filterGrid ? 'block' : 'none';
     }
 }
 
