@@ -223,7 +223,15 @@ const state = {
     simulatedDate: new Date(), // Data simulata corrente per le lune
     lastTickTime: Date.now(),
     compassActive: false,
-    currentHeading: 0
+    currentHeading: 0,
+    
+    // Mappa geografica in trasparenza Leaflet
+    map: null,
+    mapActive: false,
+    mapZoom: 15,
+    skyOpacity: 65, // Opacità della volta celeste (10% - 100%)
+    mapType: 'dark', // 'dark' o 'satellite'
+    mapLayers: {}
 };
 
 // Stato tracciamento ISS
@@ -286,7 +294,18 @@ function initDOM() {
         issContent: document.getElementById('issContent'),
         
         // Sezione Pianeti Nani
-        dwarfsGrid: document.getElementById('dwarfsGrid')
+        dwarfsGrid: document.getElementById('dwarfsGrid'),
+        
+        // Sezione Mappa Planisfero
+        checkMapActive: document.getElementById('checkMapActive'),
+        mapSubControls: document.getElementById('mapSubControls'),
+        selectMapType: document.getElementById('selectMapType'),
+        sliderMapZoom: document.getElementById('sliderMapZoom'),
+        mapZoomDisplay: document.getElementById('mapZoomDisplay'),
+        sliderSkyOpacity: document.getElementById('sliderSkyOpacity'),
+        skyOpacityDisplay: document.getElementById('skyOpacityDisplay'),
+        planisphereMap: document.getElementById('planisphereMap'),
+        planisphereSvg: document.getElementById('planisphereSvg')
     };
     // Rimuovi o metti in sicurezza se gli elementi non esistono
     ctx = dom.moonsCanvas.getContext('2d');
@@ -512,6 +531,11 @@ function setupEventListeners() {
                 innerGroup.style.transformOrigin = '100px 100px';
             }
             
+            const mapContainer = document.getElementById('planisphereMap');
+            if (mapContainer && state.mapActive) {
+                mapContainer.style.transform = `rotate(${-newHeading}deg)`;
+            }
+            
             e.preventDefault();
         };
         
@@ -535,6 +559,60 @@ function setupEventListeners() {
 
     // Gestione ridimensionamento Canvas
     window.addEventListener('resize', resizeCanvas);
+
+    // Listener per la Mappa Geografica in Trasparenza
+    if (dom.checkMapActive) {
+        dom.checkMapActive.addEventListener('change', (e) => {
+            state.mapActive = e.target.checked;
+            if (state.mapActive) {
+                if (dom.mapSubControls) dom.mapSubControls.style.display = 'flex';
+                if (dom.planisphereMap) dom.planisphereMap.style.display = 'block';
+                initPlanisphereMap();
+            } else {
+                if (dom.mapSubControls) dom.mapSubControls.style.display = 'none';
+                if (dom.planisphereMap) dom.planisphereMap.style.display = 'none';
+                updateSkyOpacity();
+            }
+            // Ricalcola il planisfero per aggiornare i raggi di azimut
+            calculatePlanisphere();
+        });
+    }
+
+    if (dom.selectMapType) {
+        dom.selectMapType.addEventListener('change', (e) => {
+            state.mapType = e.target.value;
+            if (state.map) {
+                if (state.map.hasLayer(state.mapLayers.dark)) state.map.removeLayer(state.mapLayers.dark);
+                if (state.map.hasLayer(state.mapLayers.satellite)) state.map.removeLayer(state.mapLayers.satellite);
+                
+                if (state.mapType === 'dark') {
+                    state.mapLayers.dark.addTo(state.map);
+                } else {
+                    state.mapLayers.satellite.addTo(state.map);
+                }
+            }
+        });
+    }
+
+    if (dom.sliderMapZoom) {
+        dom.sliderMapZoom.addEventListener('input', (e) => {
+            const zoom = parseInt(e.target.value);
+            state.mapZoom = zoom;
+            if (dom.mapZoomDisplay) dom.mapZoomDisplay.innerText = zoom;
+            if (state.map) {
+                state.map.setZoom(zoom);
+            }
+        });
+    }
+
+    if (dom.sliderSkyOpacity) {
+        dom.sliderSkyOpacity.addEventListener('input', (e) => {
+            const opacity = parseInt(e.target.value);
+            state.skyOpacity = opacity;
+            if (dom.skyOpacityDisplay) dom.skyOpacityDisplay.innerText = `${opacity}%`;
+            updateSkyOpacity();
+        });
+    }
 }
 
 // Funzione di debug per interrogare le API ufficiali NASA JPL Horizons
@@ -985,6 +1063,11 @@ function recalculate() {
     
     // 6. Calcola e disegna il Planisfero Celeste (Costellazioni + Stelle)
     calculatePlanisphere();
+    
+    // 6.5. Aggiorna il centro e lo stato della mappa se attiva
+    if (state.mapActive) {
+        initPlanisphereMap();
+    }
     
     // 7. Aggiorna immagine delle macchie solari (Throttled)
     updateSunspots();
@@ -2687,6 +2770,10 @@ function handleCompassOrientation(event) {
             innerGroup.style.transform = `rotate(${-heading}deg)`;
             innerGroup.style.transformOrigin = '100px 100px';
         }
+        const mapContainer = document.getElementById('planisphereMap');
+        if (mapContainer && state.mapActive) {
+            mapContainer.style.transform = `rotate(${-heading}deg)`;
+        }
     }
 }
 
@@ -2903,6 +2990,107 @@ function calculatePlanisphere() {
     planisphereStarsGroup.innerHTML = starsHtml;
     planisphereConstellationsGroup.innerHTML = constellationsHtml;
     planispherePlanetsGroup.innerHTML = planetsHtml;
+    
+    // 3.5. Disegna i raggi di azimut sul planisfero (Alba, Tramonto, Sorgere Luna, Posizioni Reali)
+    const planisphereAzimuthRaysGroup = document.getElementById('planisphereAzimuthRaysGroup');
+    let raysHtml = '';
+    if (planisphereAzimuthRaysGroup) {
+        try {
+            const dateStart = new Date(activeDate.getFullYear(), activeDate.getMonth(), activeDate.getDate(), 0, 0, 0);
+            const startAstroTime = Astronomy.MakeTime(dateStart);
+            
+            // Alba Sole
+            let sunRise = Astronomy.SearchRiseSet(Astronomy.Body.Sun, observer, 1, startAstroTime, 1);
+            if (sunRise) {
+                const t = Astronomy.MakeTime(sunRise.date);
+                const equ = Astronomy.Equator(Astronomy.Body.Sun, t, observer, true, true);
+                const hor = Astronomy.Horizon(t, observer, equ.ra, equ.dec, 'normal');
+                const angleRad = (hor.azimuth - 90) * Math.PI / 180;
+                const x = 100 + 90 * Math.cos(angleRad);
+                const y = 100 + 90 * Math.sin(angleRad);
+                const tx = 100 + 81 * Math.cos(angleRad);
+                const ty = 100 + 81 * Math.sin(angleRad);
+                raysHtml += `
+                    <line x1="100" y1="100" x2="${x}" y2="${y}" stroke="#f59e0b" stroke-width="0.8" stroke-dasharray="1.5 1.5" style="opacity: 0.65; filter: drop-shadow(0 0 1.5px #f59e0b);" />
+                    <text x="${tx}" y="${ty}" fill="#f59e0b" font-size="3.8" font-weight="700" text-anchor="middle" dominant-baseline="middle" font-family="var(--font-sans)" style="filter: drop-shadow(0 0 1px #000);">Alba</text>
+                `;
+            }
+            
+            // Tramonto Sole
+            let sunSet = Astronomy.SearchRiseSet(Astronomy.Body.Sun, observer, -1, startAstroTime, 1);
+            if (sunSet) {
+                const t = Astronomy.MakeTime(sunSet.date);
+                const equ = Astronomy.Equator(Astronomy.Body.Sun, t, observer, true, true);
+                const hor = Astronomy.Horizon(t, observer, equ.ra, equ.dec, 'normal');
+                const angleRad = (hor.azimuth - 90) * Math.PI / 180;
+                const x = 100 + 90 * Math.cos(angleRad);
+                const y = 100 + 90 * Math.sin(angleRad);
+                const tx = 100 + 81 * Math.cos(angleRad);
+                const ty = 100 + 81 * Math.sin(angleRad);
+                raysHtml += `
+                    <line x1="100" y1="100" x2="${x}" y2="${y}" stroke="#ef4444" stroke-width="0.8" stroke-dasharray="1.5 1.5" style="opacity: 0.65; filter: drop-shadow(0 0 1.5px #ef4444);" />
+                    <text x="${tx}" y="${ty}" fill="#ef4444" font-size="3.8" font-weight="700" text-anchor="middle" dominant-baseline="middle" font-family="var(--font-sans)" style="filter: drop-shadow(0 0 1px #000);">Tramonto</text>
+                `;
+            }
+            
+            // Sorgere Luna
+            let moonRise = Astronomy.SearchRiseSet(Astronomy.Body.Moon, observer, 1, startAstroTime, 1);
+            if (moonRise) {
+                const t = Astronomy.MakeTime(moonRise.date);
+                const equ = Astronomy.Equator(Astronomy.Body.Moon, t, observer, true, true);
+                const hor = Astronomy.Horizon(t, observer, equ.ra, equ.dec, 'normal');
+                const angleRad = (hor.azimuth - 90) * Math.PI / 180;
+                const x = 100 + 90 * Math.cos(angleRad);
+                const y = 100 + 90 * Math.sin(angleRad);
+                const tx = 100 + 81 * Math.cos(angleRad);
+                const ty = 100 + 81 * Math.sin(angleRad);
+                raysHtml += `
+                    <line x1="100" y1="100" x2="${x}" y2="${y}" stroke="#38bdf8" stroke-width="0.8" stroke-dasharray="1.5 1.5" style="opacity: 0.65; filter: drop-shadow(0 0 1.5px #38bdf8);" />
+                    <text x="${tx}" y="${ty}" fill="#38bdf8" font-size="3.5" font-weight="700" text-anchor="middle" dominant-baseline="middle" font-family="var(--font-sans)" style="filter: drop-shadow(0 0 1px #000);">Sorg. Luna</text>
+                `;
+            }
+            
+            // Tramonto Luna
+            let moonSet = Astronomy.SearchRiseSet(Astronomy.Body.Moon, observer, -1, startAstroTime, 1);
+            if (moonSet) {
+                const t = Astronomy.MakeTime(moonSet.date);
+                const equ = Astronomy.Equator(Astronomy.Body.Moon, t, observer, true, true);
+                const hor = Astronomy.Horizon(t, observer, equ.ra, equ.dec, 'normal');
+                const angleRad = (hor.azimuth - 90) * Math.PI / 180;
+                const x = 100 + 90 * Math.cos(angleRad);
+                const y = 100 + 90 * Math.sin(angleRad);
+                const tx = 100 + 81 * Math.cos(angleRad);
+                const ty = 100 + 81 * Math.sin(angleRad);
+                raysHtml += `
+                    <line x1="100" y1="100" x2="${x}" y2="${y}" stroke="#6366f1" stroke-width="0.8" stroke-dasharray="1.5 1.5" style="opacity: 0.65; filter: drop-shadow(0 0 1.5px #6366f1);" />
+                    <text x="${tx}" y="${ty}" fill="#6366f1" font-size="3.5" font-weight="700" text-anchor="middle" dominant-baseline="middle" font-family="var(--font-sans)" style="filter: drop-shadow(0 0 1px #000);">Tram. Luna</text>
+                `;
+            }
+
+            // Posizione Sole Istantanea (Tratteggiata gialla)
+            const sunEqu = Astronomy.Equator(Astronomy.Body.Sun, astroTime, observer, true, true);
+            const sunHor = Astronomy.Horizon(astroTime, observer, sunEqu.ra, sunEqu.dec, 'normal');
+            const sunAngleRad = (sunHor.azimuth - 90) * Math.PI / 180;
+            const sunX = 100 + 90 * Math.cos(sunAngleRad);
+            const sunY = 100 + 90 * Math.sin(sunAngleRad);
+            raysHtml += `
+                <line x1="100" y1="100" x2="${sunX}" y2="${sunY}" stroke="#eab308" stroke-dasharray="2.5 2.5" stroke-width="0.55" style="opacity: 0.45; filter: drop-shadow(0 0 1px #eab308);" />
+            `;
+
+            // Posizione Luna Istantanea (Tratteggiata argento)
+            const moonEqu = Astronomy.Equator(Astronomy.Body.Moon, astroTime, observer, true, true);
+            const moonHor = Astronomy.Horizon(astroTime, observer, moonEqu.ra, moonEqu.dec, 'normal');
+            const moonAngleRad = (moonHor.azimuth - 90) * Math.PI / 180;
+            const moonX = 100 + 90 * Math.cos(moonAngleRad);
+            const moonY = 100 + 90 * Math.sin(moonAngleRad);
+            raysHtml += `
+                <line x1="100" y1="100" x2="${moonX}" y2="${moonY}" stroke="#e2e8f0" stroke-dasharray="2.5 2.5" stroke-width="0.55" style="opacity: 0.45; filter: drop-shadow(0 0 1px #e2e8f0);" />
+            `;
+        } catch(e) {
+            console.error("Errore nel calcolo dei raggi di azimut sul planisfero:", e);
+        }
+        planisphereAzimuthRaysGroup.innerHTML = raysHtml;
+    }
     
     // 4. Disegna le comete visibili sulla cupola celeste
     let planisphereCometsGroup = document.getElementById('planisphereCometsGroup');
@@ -3240,5 +3428,98 @@ function updateCometsTable(cometList) {
     `;
 
     cometsContent.innerHTML = html;
+}
+
+// Inizializza la mappa geografica in trasparenza Leaflet
+function initPlanisphereMap() {
+    if (!state.mapActive) return;
+    
+    const mapDiv = document.getElementById('planisphereMap');
+    if (!mapDiv) return;
+    
+    // Mostra il contenitore se è nascosto
+    mapDiv.style.display = 'block';
+    
+    // Se la mappa esiste già, riposizionala sul nuovo centro dell'osservatore
+    if (state.map) {
+        state.map.setView([state.lat, state.lon], state.mapZoom);
+        
+        // Rimuovi vecchi marker
+        state.map.eachLayer(layer => {
+            if (layer instanceof L.Marker) {
+                state.map.removeLayer(layer);
+            }
+        });
+        
+        // Aggiungi marker dell'osservatore
+        addObserverMarker();
+        
+        // Forza l'aggiornamento del layout Leaflet
+        setTimeout(() => {
+            state.map.invalidateSize();
+        }, 100);
+        return;
+    }
+    
+    // Inizializza l'istanza Leaflet
+    state.map = L.map('planisphereMap', {
+        center: [state.lat, state.lon],
+        zoom: state.mapZoom,
+        zoomControl: false,
+        attributionControl: false,
+        dragging: false,
+        scrollWheelZoom: false,
+        touchZoom: false,
+        doubleClickZoom: false,
+        boxZoom: false,
+        keyboard: false
+    });
+    
+    // Configura i Layer
+    state.mapLayers.dark = L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+        maxZoom: 20
+    });
+    
+    state.mapLayers.satellite = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+        maxZoom: 19
+    });
+    
+    // Carica il layer attivo
+    if (state.mapType === 'dark') {
+        state.mapLayers.dark.addTo(state.map);
+    } else {
+        state.mapLayers.satellite.addTo(state.map);
+    }
+    
+    // Aggiungi marker dell'osservatore
+    addObserverMarker();
+    
+    // Forza sincronizzazione della rotazione iniziale della mappa con la bussola/cielo
+    mapDiv.style.transform = `rotate(${-state.currentHeading}deg)`;
+    
+    // Forza il ricalcolo del planisfero per aggiornare lo sfondo del cielo
+    updateSkyOpacity();
+}
+
+// Aggiunge un indicatore luminoso dell'osservatore al centro esatto
+function addObserverMarker() {
+    if (!state.map) return;
+    const observerIcon = L.divIcon({
+        className: 'observer-marker',
+        html: `<div style="width: 12px; height: 12px; border-radius: 50%; background-color: #a855f7; border: 2px solid #fff; box-shadow: 0 0 10px #a855f7, 0 0 4px rgba(255,255,255,0.8);"></div>`,
+        iconSize: [12, 12],
+        iconAnchor: [6, 6]
+    });
+    L.marker([state.lat, state.lon], { icon: observerIcon }).addTo(state.map);
+}
+
+// Aggiorna l'opacità dello sfondo del planisfero (volta celeste) per rivelare la mappa sottostante
+function updateSkyOpacity() {
+    if (!dom.planisphereSvg) return;
+    if (state.mapActive) {
+        dom.planisphereSvg.style.backgroundColor = `rgba(2, 6, 23, ${state.skyOpacity / 100})`;
+    } else {
+        dom.planisphereSvg.style.backgroundColor = '#020617';
+    }
 }
 
