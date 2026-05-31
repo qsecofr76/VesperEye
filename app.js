@@ -26,6 +26,61 @@ const PLANETS = [
     { id: 'Neptune', name: 'Nettuno', color: 'var(--color-neptune)', body: 'Neptune' }
 ];
 
+// Configurazione Stelle Principali (J2000 RA in ore, Dec in gradi)
+const STARS = [
+    { name: "Sirio", ra: 6.752, dec: -16.716, mag: -1.46 },
+    { name: "Vega", ra: 18.616, dec: 38.784, mag: 0.03 },
+    { name: "Arturo", ra: 14.261, dec: 19.182, mag: -0.05 },
+    { name: "Rigel", ra: 5.242, dec: -8.201, mag: 0.13 },
+    { name: "Betelgeuse", ra: 5.92, dec: 7.408, mag: 0.50 },
+    { name: "Procione", ra: 7.655, dec: 5.224, mag: 0.34 },
+    { name: "Altair", ra: 19.846, dec: 8.868, mag: 0.76 },
+    { name: "Deneb", ra: 20.69, dec: 45.28, mag: 1.25 },
+    { name: "Aldebaran", ra: 4.598, dec: 16.509, mag: 0.85 },
+    { name: "Polluce", ra: 7.755, dec: 28.026, mag: 1.14 },
+    { name: "Castore", ra: 7.576, dec: 31.888, mag: 1.58 },
+    { name: "Antares", ra: 16.49, dec: -26.432, mag: 1.06 },
+    { name: "Spica", ra: 13.419, dec: -11.161, mag: 0.98 },
+    { name: "Regolo", ra: 10.139, dec: 11.967, mag: 1.35 },
+    { name: "Stella Polare", ra: 2.53, dec: 89.264, mag: 1.97 },
+    { name: "Fomalhaut", ra: 22.961, dec: -29.622, mag: 1.16 },
+    { name: "Capella", ra: 5.278, dec: 46.00, mag: 0.08 },
+    
+    // Stelle di Ursa Major (Grande Carro)
+    { name: "Dubhe", ra: 11.062, dec: 61.751, mag: 1.8 },
+    { name: "Merak", ra: 11.03, dec: 56.38, mag: 2.3 },
+    { name: "Phecda", ra: 11.89, dec: 53.69, mag: 2.4 },
+    { name: "Megrez", ra: 12.25, dec: 57.03, mag: 3.3 },
+    { name: "Alioth", ra: 12.9, dec: 55.96, mag: 1.8 },
+    { name: "Mizar", ra: 13.398, dec: 54.92, mag: 2.2 },
+    { name: "Alkaid", ra: 13.792, dec: 49.31, mag: 1.9 },
+    
+    // Stelle di Cassiopea
+    { name: "Schedar", ra: 0.675, dec: 56.537, mag: 2.2 },
+    { name: "Caph", ra: 0.152, dec: 59.15, mag: 2.3 },
+    { name: "Gamma Cas", ra: 0.948, dec: 60.72, mag: 2.2 },
+    { name: "Ruchbah", ra: 1.43, dec: 60.23, mag: 2.7 },
+    { name: "Segin", ra: 1.9, dec: 63.67, mag: 3.4 }
+];
+
+// Collegamenti per le Linee delle Costellazioni
+const CONSTELLATIONS = [
+    // Grande Carro (Ursa Major)
+    { from: "Merak", to: "Dubhe" },
+    { from: "Dubhe", to: "Megrez" },
+    { from: "Megrez", to: "Phecda" },
+    { from: "Phecda", to: "Merak" },
+    { from: "Megrez", to: "Alioth" },
+    { from: "Alioth", to: "Mizar" },
+    { from: "Mizar", to: "Alkaid" },
+    
+    // Cassiopea
+    { from: "Caph", to: "Schedar" },
+    { from: "Schedar", to: "Gamma Cas" },
+    { from: "Gamma Cas", to: "Ruchbah" },
+    { from: "Ruchbah", to: "Segin" }
+];
+
 // Stato dell'applicazione
 const state = {
     lat: 45.7208,
@@ -645,7 +700,10 @@ function recalculate() {
     // 5. Calcola visibilità Pianeti Nani e Asteroidi
     calculateDwarfs();
     
-    // 6. Aggiorna immagine delle macchie solari (Throttled)
+    // 6. Calcola e disegna il Planisfero Celeste (Costellazioni + Stelle)
+    calculatePlanisphere();
+    
+    // 7. Aggiorna immagine delle macchie solari (Throttled)
     updateSunspots();
 }
 
@@ -2313,4 +2371,132 @@ function updateConfigSummary() {
     
     const timeText = state.isRealTime ? "Reale ⚡" : "Manuale 🕒";
     summaryText.innerText = `${cityText} • ${timeText}`;
+}
+
+// Calcola e proietta in tempo reale la volta celeste (Stelle e Costellazioni) sul Planisfero
+function calculatePlanisphere() {
+    const planisphereStarsGroup = document.getElementById('planisphereStarsGroup');
+    const planisphereConstellationsGroup = document.getElementById('planisphereConstellationsGroup');
+    const planispherePlanetsGroup = document.getElementById('planispherePlanetsGroup');
+    
+    if (!planisphereStarsGroup) return;
+    
+    const activeDate = getActiveDate();
+    const observer = new Astronomy.Observer(state.lat, state.lon, state.alt);
+    const astroTime = Astronomy.MakeTime(activeDate);
+    
+    let starsCoords = {}; // Memorizza le proiezioni (x, y) per collegare le costellazioni
+    let starsHtml = '';
+    let constellationsHtml = '';
+    let planetsHtml = '';
+    
+    // 1. Calcola e disegna le stelle principali
+    STARS.forEach(s => {
+        try {
+            const hor = Astronomy.Horizon(astroTime, observer, s.ra, s.dec, 'normal');
+            const alt = hor.altitude;
+            const az = hor.azimuth;
+            
+            // Disegna solo se la stella è sopra l'orizzonte
+            if (alt > 0) {
+                const r = 90 * (90 - alt) / 90;
+                const angleRad = (az - 90) * Math.PI / 180;
+                const x = 100 + r * Math.cos(angleRad);
+                const y = 100 + r * Math.sin(angleRad);
+                
+                starsCoords[s.name] = { x, y };
+                
+                // Diametro in base alla magnitudine apparente (più luminosa = cerchio più grande)
+                let radius = 0.8;
+                if (s.mag < 0) radius = 2.4;
+                else if (s.mag < 1.0) radius = 1.8;
+                else if (s.mag < 2.0) radius = 1.3;
+                
+                starsHtml += `
+                    <circle cx="${x}" cy="${y}" r="${radius}" fill="#fff" style="opacity: 0.95; filter: drop-shadow(0 0 1px #fff);">
+                        <title>${s.name} (Alt: ${alt.toFixed(1)}°, Az: ${az.toFixed(1)}°, Mag: ${s.mag})</title>
+                    </circle>
+                `;
+                
+                // Etichette di testo solo per le stelle più brillanti (mag < 1.5) per non affollare la mappa
+                if (s.mag < 1.3 || s.name === "Stella Polare") {
+                    starsHtml += `
+                        <text x="${x}" y="${y - 4}" fill="rgba(255,255,255,0.4)" font-size="4" font-weight="500" text-anchor="middle" font-family="var(--font-sans)">${s.name}</text>
+                    `;
+                }
+            }
+        } catch(e) {
+            console.error(`Errore nel calcolo del planisfero per la stella ${s.name}:`, e);
+        }
+    });
+    
+    // 2. Disegna le linee delle costellazioni
+    CONSTELLATIONS.forEach(c => {
+        const starFrom = starsCoords[c.from];
+        const starTo = starsCoords[c.to];
+        
+        if (starFrom && starTo) {
+            constellationsHtml += `
+                <line x1="${starFrom.x}" y1="${starFrom.y}" x2="${starTo.x}" y2="${starTo.y}" style="stroke: rgba(168, 85, 247, 0.35); stroke-width: 0.5px; stroke-dasharray: 1 1;" />
+            `;
+        }
+    });
+    
+    // Scrive il nome della costellazione al centro geometrico delle sue stelle visibili
+    const constellationLabels = [
+        { name: "Grande Carro", stars: ["Dubhe", "Merak", "Phecda", "Megrez"] },
+        { name: "Cassiopea", stars: ["Caph", "Schedar", "Gamma Cas", "Ruchbah"] }
+    ];
+    
+    constellationLabels.forEach(cl => {
+        let sumX = 0;
+        let sumY = 0;
+        let count = 0;
+        
+        cl.stars.forEach(sName => {
+            const star = starsCoords[sName];
+            if (star) {
+                sumX += star.x;
+                sumY += star.y;
+                count++;
+            }
+        });
+        
+        if (count > 0) {
+            const centerX = sumX / count;
+            const centerY = sumY / count;
+            constellationsHtml += `
+                <text x="${centerX}" y="${centerY + 5}" fill="rgba(168, 85, 247, 0.65)" font-size="4.5" font-weight="600" text-anchor="middle" font-family="var(--font-sans)">${cl.name}</text>
+            `;
+        }
+    });
+    
+    // 3. Disegna i pianeti maggiori visibili sulla cupola celere
+    PLANETS.forEach(p => {
+        try {
+            const bodyEnum = Astronomy.Body[p.body];
+            const equ = Astronomy.Equator(bodyEnum, astroTime, observer, true, true);
+            const hor = Astronomy.Horizon(astroTime, observer, equ.ra, equ.dec, 'normal');
+            
+            if (hor.altitude > 0) {
+                const r = 90 * (90 - hor.altitude) / 90;
+                const angleRad = (hor.azimuth - 90) * Math.PI / 180;
+                const x = 100 + r * Math.cos(angleRad);
+                const y = 100 + r * Math.sin(angleRad);
+                
+                planetsHtml += `
+                    <circle cx="${x}" cy="${y}" r="3" fill="${p.color}" style="stroke: #fff; stroke-width: 0.5px; filter: drop-shadow(0 0 3px ${p.color}); cursor: pointer;" onclick="selectPlanet('${p.id}')">
+                        <title>${p.name} (Alt: ${hor.altitude.toFixed(1)}°, Az: ${hor.azimuth.toFixed(1)}°)</title>
+                    </circle>
+                    <text x="${x}" y="${y - 5}" fill="${p.color}" font-size="4.8" font-weight="700" text-anchor="middle" font-family="var(--font-sans)">${p.name}</text>
+                `;
+            }
+        } catch(e) {
+            console.error(`Errore nel calcolo del pianeta ${p.name} per planisfero:`, e);
+        }
+    });
+    
+    planisphereStarsGroup.innerHTML = starsHtml;
+    planisphereConstellationsGroup.innerHTML = constellationsHtml;
+    planispherePlanetsGroup.innerHTML = planetsHtml;
 }
