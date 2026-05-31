@@ -2852,25 +2852,57 @@ function calculatePlanisphere() {
     planispherePlanetsGroup.innerHTML = planetsHtml;
 }
 
-// Stato per prevenire doppie chiamate contemporanee alle comete
+// Caching e limitazione tentativi per le comete
 let isCometsFetching = false;
+let cometsCache = null;
+let lastCometsFetchParams = { lat: 0, lon: 0, date: "" };
+let cometsFetchAttempts = 0;
+const MAX_COMETS_FETCH_ATTEMPTS = 3;
 
-// Scarica le comete visibili da COBS.si
+// Scarica le comete visibili da COBS.si (con cache e limitatore di tentativi in caso di errore)
 function fetchComets() {
     const cometsLoading = document.getElementById('cometsLoading');
     const cometsError = document.getElementById('cometsError');
     const cometsContent = document.getElementById('cometsContent');
 
+    const activeDate = getActiveDate();
+    const pad = (n) => String(n).padStart(2, '0');
+    const formattedDate = `${activeDate.getFullYear()}-${pad(activeDate.getMonth() + 1)}-${pad(activeDate.getDate())}`;
+
+    // 1. Controllo cache: se data e coordinate coincidono con l'ultimo caricamento riuscito, usa la cache
+    if (cometsCache && 
+        lastCometsFetchParams.lat === state.lat && 
+        lastCometsFetchParams.lon === state.lon && 
+        lastCometsFetchParams.date === formattedDate) {
+        updateCometsTable(cometsCache);
+        return;
+    }
+
+    // Se sta già scaricando, evita query concorrenti
     if (isCometsFetching) return;
+
+    // Se i parametri cambiano, azzera il contatore tentativi per la nuova query
+    if (lastCometsFetchParams.lat !== state.lat || 
+        lastCometsFetchParams.lon !== state.lon || 
+        lastCometsFetchParams.date !== formattedDate) {
+        cometsFetchAttempts = 0;
+    }
+
+    // 2. Controllo tentativi: se ha già fallito 3 volte per questa specifica configurazione, si ferma
+    if (cometsFetchAttempts >= MAX_COMETS_FETCH_ATTEMPTS) {
+        console.warn(`Raggiunto il limite di ${MAX_COMETS_FETCH_ATTEMPTS} tentativi falliti di download delle comete. Richiesta annullata.`);
+        if (cometsLoading) cometsLoading.style.display = 'none';
+        if (cometsContent && cometsContent.innerHTML === '') {
+            cometsContent.innerHTML = '<div class="iss-no-passes">Impossibile caricare le comete (connessione a COBS.si fallita).</div>';
+        }
+        return;
+    }
     
     if (cometsLoading) cometsLoading.style.display = 'block';
     if (cometsError) cometsError.style.display = 'none';
     
     isCometsFetching = true;
-    
-    const activeDate = getActiveDate();
-    const pad = (n) => String(n).padStart(2, '0');
-    const formattedDate = `${activeDate.getFullYear()}-${pad(activeDate.getMonth() + 1)}-${pad(activeDate.getDate())}`;
+    cometsFetchAttempts++;
     
     const targetUrl = `https://cobs.si/api/planner.api?lat=${state.lat}&long=${state.lon}&alt=${state.alt}&date=${formattedDate}&lim_mag=15`;
     const proxyUrl = `https://api.codetabs.com/v1/proxy/?quest=${encodeURIComponent(targetUrl)}`;
@@ -2887,6 +2919,10 @@ function fetchComets() {
             if (cometsLoading) cometsLoading.style.display = 'none';
             
             if (data && data.comet_list) {
+                // Registra successo, memorizza nella cache e salva i parametri
+                cometsCache = data.comet_list;
+                lastCometsFetchParams = { lat: state.lat, lon: state.lon, date: formattedDate };
+                cometsFetchAttempts = 0; // Reset dei tentativi
                 updateCometsTable(data.comet_list);
             } else {
                 if (cometsContent) {
@@ -2896,14 +2932,19 @@ function fetchComets() {
         })
         .catch(err => {
             isCometsFetching = false;
-            console.error("Errore download comete:", err);
+            console.error(`Errore download comete (Tentativo ${cometsFetchAttempts}/${MAX_COMETS_FETCH_ATTEMPTS}):`, err);
+            
             if (cometsLoading) cometsLoading.style.display = 'none';
-            if (cometsError) {
-                cometsError.innerText = "Errore durante il recupero dei dati delle comete da COBS.si. Verifica la connessione di rete.";
-                cometsError.style.display = 'block';
-            }
-            if (cometsContent) {
-                cometsContent.innerHTML = '<div class="iss-no-passes">Impossibile caricare le comete.</div>';
+            
+            // Allerta l'utente solo se sono esauriti tutti i tentativi
+            if (cometsFetchAttempts >= MAX_COMETS_FETCH_ATTEMPTS) {
+                if (cometsError) {
+                    cometsError.innerText = "Impossibile recuperare i dati delle comete da COBS.si dopo 3 tentativi. Controlla la tua connessione.";
+                    cometsError.style.display = 'block';
+                }
+                if (cometsContent) {
+                    cometsContent.innerHTML = '<div class="iss-no-passes">Errore di connessione a COBS.si.</div>';
+                }
             }
         });
 }
