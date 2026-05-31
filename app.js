@@ -2014,14 +2014,12 @@ function calculateIssPasses() {
         `;
     } else {
         html += `
-            <div class="iss-table-wrapper">
-                <table class="iss-table">
+            <div class="iss-table-wrapper" style="overflow-x: hidden;">
+                <table class="iss-table" style="table-layout: auto; width: 100%;">
                     <thead>
                         <tr>
-                            <th>Inizio</th>
-                            <th>Picco (Max)</th>
-                            <th>Elev. Max</th>
-                            <th>Traiettoria</th>
+                            <th>Ora (Iniz / Max)</th>
+                            <th>Altezza & Rotta</th>
                             <th>Visibilità</th>
                         </tr>
                     </thead>
@@ -2034,7 +2032,8 @@ function calculateIssPasses() {
             const visible = p.maxElevationIlluminated && isAfterSunset;
             
             const visBadgeClass = visible ? 'iss-vis-yes' : 'iss-vis-no';
-            const visBadgeText = visible ? '✨ Eccellente (Visibile)' : (!isAfterSunset ? '☀️ Diurno (Cielo troppo chiaro)' : '🌑 Eclissata (In ombra)');
+            const visBadgeText = visible ? '✨ Visibile' : (isAfterSunset ? '🌑 Ombra' : '☀️ Diurna');
+            const visSubText = visible ? 'Cielo scuro' : (!isAfterSunset ? 'Cielo chiaro' : 'Eclissata');
             
             let elevClass = 'iss-elev-low';
             if (p.maxElevation >= 40) elevClass = 'iss-elev-high';
@@ -2046,27 +2045,27 @@ function calculateIssPasses() {
             
             html += `
                 <tr>
-                    <td class="iss-time-cell">${formatTime(p.startTime)}</td>
-                    <td class="iss-time-cell" style="color: #38bdf8; font-weight: bold;">${formatTime(p.maxElevationTime)}</td>
-                    <td>
-                        <span class="iss-elev-badge ${elevClass}">
-                            ${p.maxElevation.toFixed(0)}°
-                        </span>
+                    <td class="iss-time-cell" style="padding: 0.6rem 0.5rem;">
+                        <div style="font-size: 0.72rem; color: var(--text-secondary); font-family: var(--font-mono);">Iniz: ${formatTime(p.startTime)}</div>
+                        <div style="color: #38bdf8; font-weight: 700; font-size: 0.82rem; margin-top: 1px; font-family: var(--font-mono);">Max: ${formatTime(p.maxElevationTime)}</div>
                     </td>
-                    <td>
-                        <span style="font-weight: 500;">${startCard}</span> 
-                        <span class="iss-arrow">➔</span> 
-                        <span style="font-weight: 600; color: #fff;">${peakCard}</span> 
-                        <span class="iss-arrow">➔</span> 
-                        <span style="font-weight: 500;">${endCard}</span>
-                        <span style="color: var(--text-muted); font-size: 0.75rem; margin-left: 6px; font-family: var(--font-mono);">
-                            (${p.maxElevationAzimuth.toFixed(0)}°)
-                        </span>
+                    <td style="padding: 0.6rem 0.5rem;">
+                        <div style="display: flex; align-items: center; gap: 0.35rem; margin-bottom: 2px;">
+                            <span class="iss-elev-badge ${elevClass}" style="padding: 0.1rem 0.35rem; font-size: 0.7rem;">
+                                ${p.maxElevation.toFixed(0)}°
+                            </span>
+                        </div>
+                        <div style="font-size: 0.72rem; font-family: var(--font-mono); color: #fff; font-weight: 500; letter-spacing: -0.2px;">
+                            ${startCard} ➔ ${peakCard} ➔ ${endCard}
+                        </div>
                     </td>
-                    <td>
-                        <span class="iss-vis-badge ${visBadgeClass}">
+                    <td style="padding: 0.6rem 0.5rem;">
+                        <span class="iss-vis-badge ${visBadgeClass}" style="font-size: 0.68rem; padding: 0.12rem 0.4rem; font-weight: 700;">
                             ${visBadgeText}
                         </span>
+                        <div style="font-size: 0.65rem; color: var(--text-muted); margin-top: 2px; font-weight: 500;">
+                            ${visSubText}
+                        </div>
                     </td>
                 </tr>
             `;
