@@ -149,25 +149,25 @@ function initTimeInputs() {
 
 // Configura i listener degli eventi
 function setupEventListeners() {
-    // Toggle pannello collassabile Data & Ora
-    const timeTitle = document.getElementById('timeTitle');
-    const timePanelContent = document.getElementById('timePanelContent');
-    const timePanelArrow = document.getElementById('timePanelArrow');
+    // Toggle pannello collassabile delle Impostazioni (GPS + Data/Ora)
+    const configTitle = document.getElementById('configTitle');
+    const configPanelContent = document.getElementById('configPanelContent');
+    const configPanelArrow = document.getElementById('configPanelArrow');
     
-    if (timeTitle && timePanelContent && timePanelArrow) {
-        timeTitle.addEventListener('click', () => {
-            const isCollapsed = timePanelContent.style.display === 'none';
-            timePanelContent.style.display = isCollapsed ? 'block' : 'none';
-            timePanelArrow.style.transform = isCollapsed ? 'rotate(180deg)' : 'rotate(0deg)';
+    if (configTitle && configPanelContent && configPanelArrow) {
+        configTitle.addEventListener('click', () => {
+            const isCollapsed = configPanelContent.style.display === 'none';
+            configPanelContent.style.display = isCollapsed ? 'block' : 'none';
+            configPanelArrow.style.transform = isCollapsed ? 'rotate(180deg)' : 'rotate(0deg)';
             
             if (isCollapsed) {
-                timeTitle.style.borderBottom = '1px solid rgba(255, 255, 255, 0.05)';
-                timeTitle.style.marginBottom = '1.25rem';
-                timeTitle.style.paddingBottom = '0.5rem';
+                configTitle.style.borderBottom = '1px solid rgba(255, 255, 255, 0.05)';
+                configTitle.style.marginBottom = '1.25rem';
+                configTitle.style.paddingBottom = '0.5rem';
             } else {
-                timeTitle.style.borderBottom = 'none';
-                timeTitle.style.marginBottom = '0';
-                timeTitle.style.paddingBottom = '0';
+                configTitle.style.borderBottom = 'none';
+                configTitle.style.marginBottom = '0';
+                configTitle.style.paddingBottom = '0';
             }
         });
     }
@@ -487,6 +487,9 @@ function loadSavedSettings() {
 
 // Ricalcola tutto (Dashboard e Bussola)
 function recalculate() {
+    // Aggiorna il testo di sintesi visibile sul pannello richiuso
+    updateConfigSummary();
+
     const activeDate = getActiveDate();
     const observer = new Astronomy.Observer(state.lat, state.lon, state.alt);
     const astroTime = Astronomy.MakeTime(activeDate);
@@ -2274,4 +2277,21 @@ function updateSunspots() {
             lastSunspotRefresh = now;
         }
     }
+}
+
+// Aggiorna dinamicamente il testo di riepilogo nella barra del pannello impostazioni
+function updateConfigSummary() {
+    const summaryText = document.getElementById('configSummaryText');
+    if (!summaryText) return;
+    
+    let cityText = "Coordinate";
+    const cityKey = dom.selectCity ? dom.selectCity.value : 'current';
+    if (cityKey && cityKey !== 'current' && CITIES[cityKey]) {
+        cityText = CITIES[cityKey].name;
+    } else if (state.lat && state.lon) {
+        cityText = `${state.lat.toFixed(2)}°, ${state.lon.toFixed(2)}°`;
+    }
+    
+    const timeText = state.isRealTime ? "Reale ⚡" : "Manuale 🕒";
+    summaryText.innerText = `${cityText} • ${timeText}`;
 }
