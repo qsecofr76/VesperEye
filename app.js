@@ -784,6 +784,17 @@ function recalculate() {
             sunAltEl.style.color = sunAlt > 0 ? '#f59e0b' : 'var(--text-secondary)';
         }
 
+        const sunVisEl = document.getElementById('sunVisVal');
+        if (sunVisEl) {
+            if (sunAlt > 0) {
+                sunVisEl.innerText = "SÌ (Visibile) ☀️";
+                sunVisEl.style.color = "#f59e0b";
+            } else {
+                sunVisEl.innerText = "NO (Sotto orizz.)";
+                sunVisEl.style.color = "var(--text-muted)";
+            }
+        }
+
         // Calcola l'altezza della Luna all'orizzonte per l'ora specificata
         const moonEqu = Astronomy.Equator(Astronomy.Body.Moon, astroTime, observer, true, true);
         const moonHor = Astronomy.Horizon(astroTime, observer, moonEqu.ra, moonEqu.dec, 'normal');
@@ -792,6 +803,17 @@ function recalculate() {
         if (moonAltEl) {
             moonAltEl.innerText = `${moonAlt.toFixed(1)}°`;
             moonAltEl.style.color = moonAlt > 0 ? '#38bdf8' : 'var(--text-secondary)';
+        }
+
+        const moonVisEl = document.getElementById('moonVisVal');
+        if (moonVisEl) {
+            if (moonAlt > 0) {
+                moonVisEl.innerText = "SÌ (Visibile) 🌕";
+                moonVisEl.style.color = "#38bdf8";
+            } else {
+                moonVisEl.innerText = "NO (Sotto orizz.)";
+                moonVisEl.style.color = "var(--text-muted)";
+            }
         }
     } catch (e) {
         console.error("Errore Alba/Tramonto/Altezze Sole e Luna:", e);
