@@ -3060,14 +3060,15 @@ function updateCometsTable(cometList) {
     const pad = (n) => String(n).padStart(2, '0');
     const formattedDate = `${activeDate.getFullYear()}-${pad(activeDate.getMonth() + 1)}-${pad(activeDate.getDate())}`;
 
-    // Ordina per magnitudine decrescente (le più brillanti prima)
+    // Ordina per magnitudine decrescente (le più brillanti prima) e limita a 6 comete al massimo
     cometList.sort((a, b) => a.magnitude - b.magnitude);
+    const displayList = cometList.slice(0, 6);
 
     let html = `
         <div class="comets-container">
     `;
 
-    cometList.forEach(comet => {
+    displayList.forEach(comet => {
         const isBright = comet.magnitude !== null && comet.magnitude < 10.0;
         const magColor = isBright ? 'style="color: #22c55e; font-weight: bold;"' : '';
         
