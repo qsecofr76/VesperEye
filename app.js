@@ -3030,13 +3030,31 @@ function updateCometsTable(cometList) {
         const isHigh = altVal !== null && altVal > 15;
         const altColor = isHigh ? 'style="color: #a855f7; font-weight: 600;"' : 'style="color: var(--text-muted);"';
 
+        // Estrazione e formattazione RA/Dec per il puntamento telescopico
+        let coordStr = '';
+        if (comet.best_ra && comet.best_dec) {
+            try {
+                const raParts = comet.best_ra.split(':');
+                const decParts = comet.best_dec.split(':');
+                
+                const raH = raParts[0];
+                const raM = raParts[1] || '00';
+                const decD = decParts[0];
+                const decM = decParts[1] || '00';
+                
+                coordStr = ` — RA: ${raH}h ${raM}m | DEC: ${decD}° ${decM}'`;
+            } catch (e) {
+                coordStr = ` — RA: ${comet.best_ra} | DEC: ${comet.best_dec}`;
+            }
+        }
+
         html += `
             <tr>
                 <td style="text-align: left; font-weight: 600; color: #fff; line-height: 1.35;">
                     <a href="https://cobs.si/comet/${comet.mpc_name || ''}" target="_blank" style="color: #38bdf8; text-decoration: none; transition: color 0.2s; display: block;" onmouseover="this.style.color='#7dd3fc'" onmouseout="this.style.color='#38bdf8'">
                         ${comet.comet_fullname || comet.comet_name}
                     </a>
-                    ${comet.constelation ? `<span style="font-size: 0.68rem; color: #c084fc; font-weight: 500;">(${comet.constelation})</span>` : ''}
+                    ${comet.constelation ? `<span style="font-size: 0.68rem; color: #c084fc; font-weight: 500;">(${comet.constelation}${coordStr})</span>` : ''}
                 </td>
                 <td ${magColor}>${comet.magnitude !== null ? comet.magnitude.toFixed(1) : '--'}</td>
                 <td style="font-family: var(--font-mono);">${riseStr}</td>
