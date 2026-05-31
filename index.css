@@ -975,9 +975,31 @@ footer {
     margin-top: 0.15rem;
 }
 
+.comet-coord-box {
+    padding: 0.4rem 0.6rem;
+    background: rgba(255, 255, 255, 0.015);
+    border-radius: 6px;
+    border: 1px solid rgba(255, 255, 255, 0.03);
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
 @media (max-width: 767px) {
-    .comet-card-stats {
-        grid-template-columns: 1fr;
+    .comet-card {
+        padding: 0.6rem 0.8rem;
         gap: 0.4rem;
+    }
+    .comet-card-stats {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 0.4rem;
+        padding-top: 0.4rem;
+        margin-top: 0.1rem;
+    }
+    .comet-card-stats > div:nth-child(3) {
+        grid-column: span 2; /* Posizione Attuale (Alt / Az) si allunga su 2 colonne */
+    }
+    .comet-coord-box {
+        padding: 0.3rem 0.5rem;
     }
 }

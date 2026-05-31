@@ -3158,20 +3158,20 @@ function updateCometsTable(cometList) {
                 </div>
                 
                 <div class="comet-card-stats">
-                    <div class="coord-box" style="padding: 0.4rem 0.6rem; background: rgba(255,255,255,0.015); border-radius: 6px; border: 1px solid rgba(255,255,255,0.03); display: flex; flex-direction: column; gap: 2px;">
+                    <div class="comet-coord-box">
                         <span class="coord-label" style="font-size: 0.65rem; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.3px;">Sorgere / Tramonto</span>
                         <span class="coord-val" style="font-size: 0.78rem; font-family: var(--font-mono); color: #fff; font-weight: 500;">${riseStr} / ${setStr}</span>
                     </div>
-                    <div class="coord-box" style="padding: 0.4rem 0.6rem; background: rgba(255,255,255,0.015); border-radius: 6px; border: 1px solid rgba(255,255,255,0.03); display: flex; flex-direction: column; gap: 2px;">
-                        <span class="coord-label" style="font-size: 0.65rem; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.3px;">Pos. Attuale (Alt / Az)</span>
-                        <span class="coord-val" style="font-size: 0.78rem; font-family: var(--font-mono); color: #fff; font-weight: 500;">${currentAltAzHtml}</span>
-                    </div>
-                    <div class="coord-box" style="padding: 0.4rem 0.6rem; background: rgba(255,255,255,0.015); border-radius: 6px; border: 1px solid rgba(255,255,255,0.03); display: flex; flex-direction: column; gap: 2px;">
+                    <div class="comet-coord-box">
                         <span class="coord-label" style="font-size: 0.65rem; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.3px;">Ora Migliore (Alt Max)</span>
                         <span class="coord-val" style="font-size: 0.78rem; font-family: var(--font-mono); color: #fff; font-weight: 500;">
                             <span style="color: #fff;">${bestTimeStr}</span> 
                             <span ${altColor}>(${altVal !== null ? altVal.toFixed(1) + '°' : '--'})</span>
                         </span>
+                    </div>
+                    <div class="comet-coord-box">
+                        <span class="coord-label" style="font-size: 0.65rem; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.3px;">Pos. Attuale (Alt / Az)</span>
+                        <span class="coord-val" style="font-size: 0.78rem; font-family: var(--font-mono); color: #fff; font-weight: 500;">${currentAltAzHtml}</span>
                     </div>
                 </div>
             </div>
