@@ -764,23 +764,64 @@ function recalculate() {
         let riseTime = Astronomy.SearchRiseSet(Astronomy.Body.Sun, observer, 1, startAstroTime, 1);
         let setTime = Astronomy.SearchRiseSet(Astronomy.Body.Sun, observer, -1, startAstroTime, 1);
         
-        document.getElementById('sunRiseVal').innerText = riseTime ? formatTime(riseTime.date) : '--:--';
-        document.getElementById('sunSetVal').innerText = setTime ? formatTime(setTime.date) : '--:--';
+        if (riseTime) {
+            const riseAstroTime = Astronomy.MakeTime(riseTime.date);
+            const riseEqu = Astronomy.Equator(Astronomy.Body.Sun, riseAstroTime, observer, true, true);
+            const riseHor = Astronomy.Horizon(riseAstroTime, observer, riseEqu.ra, riseEqu.dec, 'normal');
+            const riseAz = riseHor.azimuth;
+            const riseCard = getCardinalDirection(riseAz);
+            document.getElementById('sunRiseVal').innerHTML = `${formatTime(riseTime.date)} <span style="font-size: 0.72rem; color: var(--text-secondary); font-weight: normal;">/ ${riseAz.toFixed(0)}° (${riseCard})</span>`;
+        } else {
+            document.getElementById('sunRiseVal').innerText = '--:--';
+        }
+        
+        if (setTime) {
+            const setAstroTime = Astronomy.MakeTime(setTime.date);
+            const setEqu = Astronomy.Equator(Astronomy.Body.Sun, setAstroTime, observer, true, true);
+            const setHor = Astronomy.Horizon(setAstroTime, observer, setEqu.ra, setEqu.dec, 'normal');
+            const setAz = setHor.azimuth;
+            const setCard = getCardinalDirection(setAz);
+            document.getElementById('sunSetVal').innerHTML = `${formatTime(setTime.date)} <span style="font-size: 0.72rem; color: var(--text-secondary); font-weight: normal;">/ ${setAz.toFixed(0)}° (${setCard})</span>`;
+        } else {
+            document.getElementById('sunSetVal').innerText = '--:--';
+        }
 
         // Calcola Alba e Tramonto della Luna per la data corrente (limitDays = 1)
         let moonRiseTime = Astronomy.SearchRiseSet(Astronomy.Body.Moon, observer, 1, startAstroTime, 1);
         let moonSetTime = Astronomy.SearchRiseSet(Astronomy.Body.Moon, observer, -1, startAstroTime, 1);
         
-        document.getElementById('moonRiseVal').innerText = moonRiseTime ? formatTime(moonRiseTime.date) : '--:--';
-        document.getElementById('moonSetVal').innerText = moonSetTime ? formatTime(moonSetTime.date) : '--:--';
+        if (moonRiseTime) {
+            const mRiseAstroTime = Astronomy.MakeTime(moonRiseTime.date);
+            const mRiseEqu = Astronomy.Equator(Astronomy.Body.Moon, mRiseAstroTime, observer, true, true);
+            const mRiseHor = Astronomy.Horizon(mRiseAstroTime, observer, mRiseEqu.ra, mRiseEqu.dec, 'normal');
+            const mRiseAz = mRiseHor.azimuth;
+            const mRiseCard = getCardinalDirection(mRiseAz);
+            document.getElementById('moonRiseVal').innerHTML = `${formatTime(moonRiseTime.date)} <span style="font-size: 0.72rem; color: var(--text-secondary); font-weight: normal;">/ ${mRiseAz.toFixed(0)}° (${mRiseCard})</span>`;
+        } else {
+            document.getElementById('moonRiseVal').innerText = '--:--';
+        }
 
-        // Calcola l'altezza del Sole all'orizzonte per l'ora specificata
+        if (moonSetTime) {
+            const mSetAstroTime = Astronomy.MakeTime(moonSetTime.date);
+            const mSetEqu = Astronomy.Equator(Astronomy.Body.Moon, mSetAstroTime, observer, true, true);
+            const mSetHor = Astronomy.Horizon(mSetAstroTime, observer, mSetEqu.ra, mSetEqu.dec, 'normal');
+            const mSetAz = mSetHor.azimuth;
+            const mSetCard = getCardinalDirection(mSetAz);
+            document.getElementById('moonSetVal').innerHTML = `${formatTime(moonSetTime.date)} <span style="font-size: 0.72rem; color: var(--text-secondary); font-weight: normal;">/ ${mSetAz.toFixed(0)}° (${mSetCard})</span>`;
+        } else {
+            document.getElementById('moonSetVal').innerText = '--:--';
+        }
+
+        // Calcola l'altezza e l'azimut del Sole all'orizzonte per l'ora specificata
         const sunEqu = Astronomy.Equator(Astronomy.Body.Sun, astroTime, observer, true, true);
         const sunHor = Astronomy.Horizon(astroTime, observer, sunEqu.ra, sunEqu.dec, 'normal');
         const sunAlt = sunHor.altitude;
+        const sunAz = sunHor.azimuth;
         const sunAltEl = document.getElementById('sunAltVal');
         if (sunAltEl) {
-            sunAltEl.innerText = `${sunAlt.toFixed(1)}°`;
+            const sunCard = getCardinalDirection(sunAz);
+            const sunAltSign = sunAlt > 0 ? '+' : '';
+            sunAltEl.innerHTML = `<span style="font-weight: 600;">${sunAltSign}${sunAlt.toFixed(1)}°</span> <span style="font-size: 0.72rem; color: var(--text-secondary); font-weight: normal;">/ ${sunAz.toFixed(0)}° (${sunCard})</span>`;
             sunAltEl.style.color = sunAlt > 0 ? '#f59e0b' : 'var(--text-secondary)';
         }
 
@@ -795,13 +836,16 @@ function recalculate() {
             }
         }
 
-        // Calcola l'altezza della Luna all'orizzonte per l'ora specificata
+        // Calcola l'altezza e l'azimut della Luna all'orizzonte per l'ora specificata
         const moonEqu = Astronomy.Equator(Astronomy.Body.Moon, astroTime, observer, true, true);
         const moonHor = Astronomy.Horizon(astroTime, observer, moonEqu.ra, moonEqu.dec, 'normal');
         const moonAlt = moonHor.altitude;
+        const moonAz = moonHor.azimuth;
         const moonAltEl = document.getElementById('moonAltVal');
         if (moonAltEl) {
-            moonAltEl.innerText = `${moonAlt.toFixed(1)}°`;
+            const moonCard = getCardinalDirection(moonAz);
+            const moonAltSign = moonAlt > 0 ? '+' : '';
+            moonAltEl.innerHTML = `<span style="font-weight: 600;">${moonAltSign}${moonAlt.toFixed(1)}°</span> <span style="font-size: 0.72rem; color: var(--text-secondary); font-weight: normal;">/ ${moonAz.toFixed(0)}° (${moonCard})</span>`;
             moonAltEl.style.color = moonAlt > 0 ? '#38bdf8' : 'var(--text-secondary)';
         }
 

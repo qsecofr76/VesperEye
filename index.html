@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>VesperEye - Strumento Astronomico per Astrofili</title>
     <meta name="description" content="Calcola la visibilità dei pianeti, altezza, azimut e le posizioni delle lune di Giove, Saturno e Urano in tempo reale in base alla tua posizione GPS.">
-    <link rel="stylesheet" href="index.css?v=3.3">
+    <link rel="stylesheet" href="index.css?v=3.4">
     <!-- Astronomy Engine Core Library (Locale per funzionamento Offline e sicurezza) -->
     <script src="./astronomy.js"></script>
     <!-- Satellite.js Library (Per tracciamento in tempo reale e previsione passaggi della ISS) -->
@@ -144,31 +144,31 @@
                     </h2>
                     <div class="planet-coords" style="grid-template-columns: 1fr 1fr; margin-bottom: 0.75rem;">
                         <div class="coord-box">
-                            <span class="coord-label">Alba (Sole)</span>
+                            <span class="coord-label">Alba / Az (Sole)</span>
                             <span class="coord-val" id="sunRiseVal">--:--</span>
                         </div>
                         <div class="coord-box">
-                            <span class="coord-label">Tramonto (Sole)</span>
+                            <span class="coord-label">Tramonto / Az (Sole)</span>
                             <span class="coord-val" id="sunSetVal">--:--</span>
                         </div>
                     </div>
                     <div class="planet-coords" style="grid-template-columns: 1fr 1fr; margin-bottom: 0.75rem;">
                         <div class="coord-box">
-                            <span class="coord-label">Sorgere (Luna)</span>
+                            <span class="coord-label">Sorgere / Az (Luna)</span>
                             <span class="coord-val" id="moonRiseVal">--:--</span>
                         </div>
                         <div class="coord-box">
-                            <span class="coord-label">Tramonto (Luna)</span>
+                            <span class="coord-label">Tramonto / Az (Luna)</span>
                             <span class="coord-val" id="moonSetVal">--:--</span>
                         </div>
                     </div>
                     <div class="planet-coords" style="grid-template-columns: 1fr 1fr; margin-bottom: 0.75rem;">
                         <div class="coord-box">
-                            <span class="coord-label">Altezza Sole</span>
+                            <span class="coord-label">Pos. Attuale Sole (Alt/Az)</span>
                             <span class="coord-val" id="sunAltVal">--.-°</span>
                         </div>
                         <div class="coord-box">
-                            <span class="coord-label">Altezza Luna</span>
+                            <span class="coord-label">Pos. Attuale Luna (Alt/Az)</span>
                             <span class="coord-val" id="moonAltVal">--.-°</span>
                         </div>
                     </div>
@@ -473,6 +473,6 @@
         </footer>
     </div>
 
-    <script src="app.js?v=3.3"></script>
+    <script src="app.js?v=3.4"></script>
 </body>
 </html>
