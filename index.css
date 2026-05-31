@@ -41,7 +41,7 @@ body {
     background-color: var(--bg-space);
     color: var(--text-primary);
     min-height: 100vh;
-    overflow-x: hidden;
+    overflow-x: auto;
     position: relative;
     background-image: 
         radial-gradient(at 10% 20%, rgba(88, 28, 135, 0.15) 0px, transparent 50%),
@@ -796,7 +796,7 @@ footer {
     html, body {
         width: 100%;
         max-width: 100%;
-        overflow-x: hidden;
+        overflow-x: auto;
     }
     
     .container {
