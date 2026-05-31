@@ -936,6 +936,9 @@ function recalculate() {
     // 5. Calcola visibilità Pianeti Nani e Asteroidi
     calculateDwarfs();
     
+    // 5.5. Calcola visibilità Comete della Serata (COBS.si API)
+    fetchComets();
+    
     // 6. Calcola e disegna il Planisfero Celeste (Costellazioni + Stelle)
     calculatePlanisphere();
     
@@ -2848,3 +2851,136 @@ function calculatePlanisphere() {
     planisphereConstellationsGroup.innerHTML = constellationsHtml;
     planispherePlanetsGroup.innerHTML = planetsHtml;
 }
+
+// Stato per prevenire doppie chiamate contemporanee alle comete
+let isCometsFetching = false;
+
+// Scarica le comete visibili da COBS.si
+function fetchComets() {
+    const cometsLoading = document.getElementById('cometsLoading');
+    const cometsError = document.getElementById('cometsError');
+    const cometsContent = document.getElementById('cometsContent');
+
+    if (isCometsFetching) return;
+    
+    if (cometsLoading) cometsLoading.style.display = 'block';
+    if (cometsError) cometsError.style.display = 'none';
+    
+    isCometsFetching = true;
+    
+    const activeDate = getActiveDate();
+    const pad = (n) => String(n).padStart(2, '0');
+    const formattedDate = `${activeDate.getFullYear()}-${pad(activeDate.getMonth() + 1)}-${pad(activeDate.getDate())}`;
+    
+    const url = `https://cobs.si/api/planner.api?lat=${state.lat}&long=${state.lon}&alt=${state.alt}&date=${formattedDate}&lim_mag=15`;
+    
+    fetch(url)
+        .then(response => {
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            return response.json();
+        })
+        .then(data => {
+            isCometsFetching = false;
+            if (cometsLoading) cometsLoading.style.display = 'none';
+            
+            if (data && data.comet_list) {
+                updateCometsTable(data.comet_list);
+            } else {
+                if (cometsContent) {
+                    cometsContent.innerHTML = '<div class="iss-no-passes">Nessuna cometa visibile stasera sotto magnitudine 15.</div>';
+                }
+            }
+        })
+        .catch(err => {
+            isCometsFetching = false;
+            console.error("Errore download comete:", err);
+            if (cometsLoading) cometsLoading.style.display = 'none';
+            if (cometsError) {
+                cometsError.innerText = "Errore durante il recupero dei dati delle comete da COBS.si. Verifica la connessione di rete.";
+                cometsError.style.display = 'block';
+            }
+            if (cometsContent) {
+                cometsContent.innerHTML = '<div class="iss-no-passes">Impossibile caricare le comete.</div>';
+            }
+        });
+}
+
+// Aggiorna la tabella delle comete nell'interfaccia utente
+function updateCometsTable(cometList) {
+    const cometsContent = document.getElementById('cometsContent');
+    if (!cometsContent) return;
+
+    if (!cometList || cometList.length === 0) {
+        cometsContent.innerHTML = '<div class="iss-no-passes">Nessuna cometa visibile stasera sotto magnitudine 15.</div>';
+        return;
+    }
+
+    // Ordina per magnitudine decrescente (le più brillanti prima)
+    cometList.sort((a, b) => a.magnitude - b.magnitude);
+
+    let html = `
+        <div class="table-container" style="overflow-x: auto; -webkit-overflow-scrolling: touch;">
+            <table class="iss-table" style="min-width: 580px; width: 100%;">
+                <thead>
+                    <tr>
+                        <th style="text-align: left;">Cometa</th>
+                        <th>Magnitudine</th>
+                        <th>Ora Migliore</th>
+                        <th>Altezza Max</th>
+                        <th>Elong. Sole</th>
+                        <th>Elong. Luna</th>
+                    </tr>
+                </thead>
+                <tbody>
+    `;
+
+    cometList.forEach(comet => {
+        const isBright = comet.magnitude !== null && comet.magnitude < 10.0;
+        const magColor = isBright ? 'style="color: #22c55e; font-weight: bold;"' : '';
+        
+        let bestTimeStr = '--:--';
+        if (comet.best_time) {
+            try {
+                const parts = comet.best_time.split(' ');
+                if (parts.length > 1) {
+                    bestTimeStr = parts[1]; // Prendi solo HH:MM
+                }
+            } catch (e) {
+                bestTimeStr = comet.best_time;
+            }
+        }
+
+        const altVal = comet.best_alt;
+        const isHigh = altVal !== null && altVal > 15;
+        const altColor = isHigh ? 'style="color: #a855f7; font-weight: 600;"' : 'style="color: var(--text-muted);"';
+
+        html += `
+            <tr>
+                <td style="text-align: left; font-weight: 600; color: #fff;">
+                    <a href="https://cobs.si/comet/${comet.mpc_name || ''}" target="_blank" style="color: #38bdf8; text-decoration: none; transition: color 0.2s;" onmouseover="this.style.color='#7dd3fc'" onmouseout="this.style.color='#38bdf8'">
+                        ${comet.comet_fullname || comet.comet_name}
+                    </a>
+                </td>
+                <td ${magColor}>${comet.magnitude !== null ? comet.magnitude.toFixed(1) : '--'}</td>
+                <td style="font-family: var(--font-mono);">${bestTimeStr}</td>
+                <td ${altColor}>${altVal !== null ? altVal.toFixed(1) + '°' : '--'}</td>
+                <td>${comet.sun_elongation !== null ? comet.sun_elongation + '°' : '--'}</td>
+                <td>${comet.moon_elongation !== null ? comet.moon_elongation + '°' : '--'}</td>
+            </tr>
+        `;
+    });
+
+    html += `
+                </tbody>
+            </table>
+        </div>
+        <p style="font-size: 0.72rem; color: var(--text-muted); text-align: right; margin-top: 0.75rem; border-top: 1px solid rgba(255,255,255,0.05); padding-top: 0.5rem; font-style: italic;">
+            Dati comete per gentile concessione del Comet Observation Database (<a href="https://cobs.si" target="_blank" style="color: #fda4af; text-decoration: none;">COBS.si</a>)
+        </p>
+    `;
+
+    cometsContent.innerHTML = html;
+}
+

@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>VesperEye - Strumento Astronomico per Astrofili</title>
     <meta name="description" content="Calcola la visibilità dei pianeti, altezza, azimut e le posizioni delle lune di Giove, Saturno e Urano in tempo reale in base alla tua posizione GPS.">
-    <link rel="stylesheet" href="index.css?v=2.4">
+    <link rel="stylesheet" href="index.css?v=2.5">
     <!-- Astronomy Engine Core Library (Locale per funzionamento Offline e sicurezza) -->
     <script src="./astronomy.js"></script>
     <!-- Satellite.js Library (Per tracciamento in tempo reale e previsione passaggi della ISS) -->
@@ -289,6 +289,31 @@
                     </div>
                 </section>
 
+                <!-- Comete Visibili della Serata -->
+                <section class="panel" id="cometsSection">
+                    <h2 class="panel-title" style="border-bottom: none; margin-bottom: 0.5rem; display: flex; align-items: center; gap: 0.5rem;">
+                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color: #c084fc; filter: drop-shadow(0 0 4px rgba(192, 132, 252, 0.4));">
+                            <circle cx="6" cy="18" r="3"></circle>
+                            <path d="M9 15L22 2M8 17L22 6M6 19L20 10"></path>
+                        </svg>
+                        Comete Visibili della Serata
+                    </h2>
+                    <p style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 1.25rem;">
+                        Comete attualmente osservabili (limite mag &lt; 15) calcolate per la tua posizione corrente.
+                    </p>
+                    
+                    <div id="cometsLoading" style="display: none; padding: 2rem 1rem; text-align: center; color: var(--text-secondary);">
+                        <div class="pulse-indicator" style="background-color: #c084fc; display: inline-block; margin-right: 0.5rem; box-shadow: 0 0 8px #c084fc;"></div>
+                        <span>Caricamento dei dati osservativi delle comete da COBS.si in corso...</span>
+                    </div>
+                    
+                    <div id="cometsError" class="error-message" style="display: none; margin-bottom: 1rem;"></div>
+                    
+                    <div id="cometsContent">
+                        <!-- Verrà popolato da JS con la tabella delle comete -->
+                    </div>
+                </section>
+
                 <!-- Planisfero Celeste (Volta Stellata) -->
                 <section class="panel" id="planisphereSection" style="display: flex; flex-direction: column; align-items: center;">
                     <h2 class="panel-title" style="border-bottom: none; margin-bottom: 1.25rem; display: flex; align-items: center; gap: 0.5rem; width: 100%;">
@@ -431,6 +456,6 @@
         </footer>
     </div>
 
-    <script src="app.js?v=2.4"></script>
+    <script src="app.js?v=2.5"></script>
 </body>
 </html>
