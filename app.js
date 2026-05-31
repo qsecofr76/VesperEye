@@ -2949,7 +2949,7 @@ function fetchComets() {
         });
 }
 
-// Aggiorna la tabella delle comete nell'interfaccia utente
+// Aggiorna la tabella delle comete nell'interfaccia utente (ora con orario di sorgere, tramonto e costellazione)
 function updateCometsTable(cometList) {
     const cometsContent = document.getElementById('cometsContent');
     if (!cometsContent) return;
@@ -2958,6 +2958,10 @@ function updateCometsTable(cometList) {
         cometsContent.innerHTML = '<div class="iss-no-passes">Nessuna cometa visibile stasera sotto magnitudine 15.</div>';
         return;
     }
+
+    const activeDate = getActiveDate();
+    const pad = (n) => String(n).padStart(2, '0');
+    const formattedDate = `${activeDate.getFullYear()}-${pad(activeDate.getMonth() + 1)}-${pad(activeDate.getDate())}`;
 
     // Ordina per magnitudine decrescente (le più brillanti prima)
     cometList.sort((a, b) => a.magnitude - b.magnitude);
@@ -2968,11 +2972,11 @@ function updateCometsTable(cometList) {
                 <thead>
                     <tr>
                         <th style="text-align: left;">Cometa</th>
-                        <th>Magnitudine</th>
-                        <th>Ora Migliore</th>
-                        <th>Altezza Max</th>
-                        <th>Elong. Sole</th>
-                        <th>Elong. Luna</th>
+                        <th>Mag.</th>
+                        <th>Sorgere</th>
+                        <th>Tramonto</th>
+                        <th>Ora Migliore (Alt)</th>
+                        <th>Elong. (S / L)</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -2982,6 +2986,34 @@ function updateCometsTable(cometList) {
         const isBright = comet.magnitude !== null && comet.magnitude < 10.0;
         const magColor = isBright ? 'style="color: #22c55e; font-weight: bold;"' : '';
         
+        let riseStr = '--:--';
+        if (comet.rise_time) {
+            try {
+                const parts = comet.rise_time.split(' ');
+                if (parts.length > 1) {
+                    riseStr = parts[1];
+                }
+            } catch (e) {
+                riseStr = comet.rise_time;
+            }
+        }
+
+        let setStr = '--:--';
+        if (comet.set_time) {
+            try {
+                const parts = comet.set_time.split(' ');
+                if (parts.length > 1) {
+                    setStr = parts[1];
+                    // Se tramonta il giorno successivo, aggiunge un grazioso indicatore +1g
+                    if (parts[0] !== formattedDate) {
+                        setStr += ' <span style="font-size: 0.65rem; opacity: 0.6; font-weight: normal;">+1g</span>';
+                    }
+                }
+            } catch (e) {
+                setStr = comet.set_time;
+            }
+        }
+
         let bestTimeStr = '--:--';
         if (comet.best_time) {
             try {
@@ -3000,16 +3032,17 @@ function updateCometsTable(cometList) {
 
         html += `
             <tr>
-                <td style="text-align: left; font-weight: 600; color: #fff;">
-                    <a href="https://cobs.si/comet/${comet.mpc_name || ''}" target="_blank" style="color: #38bdf8; text-decoration: none; transition: color 0.2s;" onmouseover="this.style.color='#7dd3fc'" onmouseout="this.style.color='#38bdf8'">
+                <td style="text-align: left; font-weight: 600; color: #fff; line-height: 1.35;">
+                    <a href="https://cobs.si/comet/${comet.mpc_name || ''}" target="_blank" style="color: #38bdf8; text-decoration: none; transition: color 0.2s; display: block;" onmouseover="this.style.color='#7dd3fc'" onmouseout="this.style.color='#38bdf8'">
                         ${comet.comet_fullname || comet.comet_name}
                     </a>
+                    ${comet.constelation ? `<span style="font-size: 0.68rem; color: #c084fc; font-weight: 500;">(${comet.constelation})</span>` : ''}
                 </td>
                 <td ${magColor}>${comet.magnitude !== null ? comet.magnitude.toFixed(1) : '--'}</td>
-                <td style="font-family: var(--font-mono);">${bestTimeStr}</td>
-                <td ${altColor}>${altVal !== null ? altVal.toFixed(1) + '°' : '--'}</td>
-                <td>${comet.sun_elongation !== null ? comet.sun_elongation + '°' : '--'}</td>
-                <td>${comet.moon_elongation !== null ? comet.moon_elongation + '°' : '--'}</td>
+                <td style="font-family: var(--font-mono);">${riseStr}</td>
+                <td style="font-family: var(--font-mono);">${setStr}</td>
+                <td style="font-family: var(--font-mono);"><span style="color: #fff;">${bestTimeStr}</span> <span ${altColor}>(${altVal !== null ? altVal.toFixed(1) + '°' : '--'})</span></td>
+                <td style="font-size: 0.75rem; color: var(--text-secondary);">${comet.sun_elongation !== null ? comet.sun_elongation + '°' : '--'} / ${comet.moon_elongation !== null ? comet.moon_elongation + '°' : '--'}</td>
             </tr>
         `;
     });
