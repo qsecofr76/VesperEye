@@ -521,6 +521,10 @@ input:checked + .slider:before {
     gap: 1.5rem;
 }
 
+.moons-section:not(.active) {
+    display: none !important;
+}
+
 @media (min-width: 1024px) {
     .moons-section {
         grid-template-columns: 1fr 340px;

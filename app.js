@@ -986,7 +986,7 @@ window.selectPlanet = function(planetId) {
 // Mostra o nasconde il pannello lune in base alla selezione
 function updateMoonsPanel() {
     if (state.selectedPlanet === 'Jupiter' || state.selectedPlanet === 'Saturn' || state.selectedPlanet === 'Uranus') {
-        dom.moonsSection.style.display = 'grid';
+        dom.moonsSection.classList.add('active');
         if (state.selectedPlanet === 'Jupiter') {
             dom.selectedPlanetTitle.innerHTML = `
                 <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color: var(--color-jupiter)"><circle cx="12" cy="12" r="10"></circle><line x1="8" y1="15" x2="16" y2="15"></line><line x1="6" y1="9" x2="18" y2="9"></line></svg>
@@ -1004,7 +1004,7 @@ function updateMoonsPanel() {
             `;
         }
     } else {
-        dom.moonsSection.style.display = 'none';
+        dom.moonsSection.classList.remove('active');
     }
 }
 
