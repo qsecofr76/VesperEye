@@ -2089,7 +2089,17 @@ function calculateIssPasses() {
     }
     
     if (dom.issContent) {
+        // Salvaguarda la posizione dello scorrimento orizzontale prima di sovrascrivere l'HTML
+        const wrapper = dom.issContent.querySelector('.iss-table-wrapper');
+        const savedScrollLeft = wrapper ? wrapper.scrollLeft : 0;
+        
         dom.issContent.innerHTML = html;
+        
+        // Ripristina la posizione dello scorrimento orizzontale
+        const newWrapper = dom.issContent.querySelector('.iss-table-wrapper');
+        if (newWrapper) {
+            newWrapper.scrollLeft = savedScrollLeft;
+        }
     }
 }
 
@@ -2262,7 +2272,17 @@ function calculateDwarfs() {
         </div>
     `;
     
+    // Salvaguarda la posizione dello scorrimento orizzontale prima di sovrascrivere l'HTML
+    const wrapper = dom.dwarfsGrid.querySelector('.iss-table-wrapper');
+    const savedScrollLeft = wrapper ? wrapper.scrollLeft : 0;
+    
     dom.dwarfsGrid.innerHTML = tableHtml;
+    
+    // Ripristina la posizione dello scorrimento orizzontale
+    const newWrapper = dom.dwarfsGrid.querySelector('.iss-table-wrapper');
+    if (newWrapper) {
+        newWrapper.scrollLeft = savedScrollLeft;
+    }
 }
 
 // Aggiorna l'immagine delle macchie solari da SDO NASA a intervalli regolari (Throttled)
