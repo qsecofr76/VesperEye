@@ -918,3 +918,66 @@ footer {
     max-width: 100%;
     margin: 0 auto;
 }
+
+/* Stili per la sezione Comete Responsive Card-based */
+.comets-container {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.comet-card {
+    background: rgba(255, 255, 255, 0.015);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    border-radius: 12px;
+    padding: 0.75rem 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+    transition: all 0.2s ease-in-out;
+}
+
+.comet-card:hover {
+    border-color: rgba(192, 132, 252, 0.25);
+    background: rgba(192, 132, 252, 0.015);
+    box-shadow: 0 4px 12px rgba(192, 132, 252, 0.05);
+}
+
+.comet-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+.comet-card-name {
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: #fff;
+    text-decoration: none;
+    transition: color 0.2s;
+}
+
+.comet-card-constellation {
+    font-size: 0.72rem;
+    color: #c084fc;
+    font-weight: 500;
+    margin-top: 2px;
+}
+
+.comet-card-stats {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0.6rem;
+    border-top: 1px solid rgba(255, 255, 255, 0.04);
+    padding-top: 0.6rem;
+    margin-top: 0.15rem;
+}
+
+@media (max-width: 767px) {
+    .comet-card-stats {
+        grid-template-columns: 1fr;
+        gap: 0.4rem;
+    }
+}

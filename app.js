@@ -3034,7 +3034,7 @@ function parseDecToDegrees(decStr) {
     return isNegative ? -val : val;
 }
 
-// Aggiorna la tabella delle comete nell'interfaccia utente (con orari, costellazione, RA/Dec e Alt/Az in tempo reale)
+// Aggiorna le comete nell'interfaccia utente (con un moderno layout a schede completamente responsive)
 function updateCometsTable(cometList) {
     const cometsContent = document.getElementById('cometsContent');
     if (!cometsContent) return;
@@ -3055,18 +3055,7 @@ function updateCometsTable(cometList) {
     cometList.sort((a, b) => a.magnitude - b.magnitude);
 
     let html = `
-        <div class="table-container" style="overflow-x: auto; -webkit-overflow-scrolling: touch;">
-            <table class="iss-table" style="min-width: 580px; width: 100%;">
-                <thead>
-                    <tr>
-                        <th style="text-align: left;">Cometa</th>
-                        <th>Mag.</th>
-                        <th>Sorgere / Tramonto</th>
-                        <th>Pos. Attuale (Alt / Az)</th>
-                        <th>Ora Migliore (Alt Max)</th>
-                    </tr>
-                </thead>
-                <tbody>
+        <div class="comets-container">
     `;
 
     cometList.forEach(comet => {
@@ -3154,24 +3143,42 @@ function updateCometsTable(cometList) {
         }
 
         html += `
-            <tr>
-                <td style="text-align: left; font-weight: 600; color: #fff; line-height: 1.35;">
-                    <a href="https://cobs.si/comet/${comet.mpc_name || ''}" target="_blank" style="color: #38bdf8; text-decoration: none; transition: color 0.2s; display: block;" onmouseover="this.style.color='#7dd3fc'" onmouseout="this.style.color='#38bdf8'">
-                        ${comet.comet_fullname || comet.comet_name}
-                    </a>
-                    ${comet.constelation ? `<span style="font-size: 0.68rem; color: #c084fc; font-weight: 500;">(${comet.constelation}${coordStr})</span>` : ''}
-                </td>
-                <td ${magColor}>${comet.magnitude !== null ? comet.magnitude.toFixed(1) : '--'}</td>
-                <td style="font-family: var(--font-mono);">${riseStr} / ${setStr}</td>
-                <td style="font-family: var(--font-mono);">${currentAltAzHtml}</td>
-                <td style="font-family: var(--font-mono);"><span style="color: #fff;">${bestTimeStr}</span> <span ${altColor}>(${altVal !== null ? altVal.toFixed(1) + '°' : '--'})</span></td>
-            </tr>
+            <div class="comet-card">
+                <div class="comet-card-header">
+                    <div style="display: flex; flex-direction: column; gap: 0.15rem; flex: 1; min-width: 200px;">
+                        <a href="https://cobs.si/comet/${comet.mpc_name || ''}" target="_blank" class="comet-card-name" style="color: #38bdf8; text-decoration: none; font-weight: 600; font-size: 0.95rem; transition: color 0.2s;" onmouseover="this.style.color='#7dd3fc'" onmouseout="this.style.color='#38bdf8'">
+                            ${comet.comet_fullname || comet.comet_name}
+                        </a>
+                        ${comet.constelation ? `<span class="comet-card-constellation">(${comet.constelation}${coordStr})</span>` : ''}
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 0.4rem; justify-content: flex-end;">
+                        <span style="font-size: 0.7rem; color: var(--text-muted); font-weight: 500; text-transform: uppercase; letter-spacing: 0.5px;">Mag:</span>
+                        <span ${magColor} style="font-size: 0.95rem; font-family: var(--font-mono);">${comet.magnitude !== null ? comet.magnitude.toFixed(1) : '--'}</span>
+                    </div>
+                </div>
+                
+                <div class="comet-card-stats">
+                    <div class="coord-box" style="padding: 0.4rem 0.6rem; background: rgba(255,255,255,0.015); border-radius: 6px; border: 1px solid rgba(255,255,255,0.03); display: flex; flex-direction: column; gap: 2px;">
+                        <span class="coord-label" style="font-size: 0.65rem; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.3px;">Sorgere / Tramonto</span>
+                        <span class="coord-val" style="font-size: 0.78rem; font-family: var(--font-mono); color: #fff; font-weight: 500;">${riseStr} / ${setStr}</span>
+                    </div>
+                    <div class="coord-box" style="padding: 0.4rem 0.6rem; background: rgba(255,255,255,0.015); border-radius: 6px; border: 1px solid rgba(255,255,255,0.03); display: flex; flex-direction: column; gap: 2px;">
+                        <span class="coord-label" style="font-size: 0.65rem; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.3px;">Pos. Attuale (Alt / Az)</span>
+                        <span class="coord-val" style="font-size: 0.78rem; font-family: var(--font-mono); color: #fff; font-weight: 500;">${currentAltAzHtml}</span>
+                    </div>
+                    <div class="coord-box" style="padding: 0.4rem 0.6rem; background: rgba(255,255,255,0.015); border-radius: 6px; border: 1px solid rgba(255,255,255,0.03); display: flex; flex-direction: column; gap: 2px;">
+                        <span class="coord-label" style="font-size: 0.65rem; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.3px;">Ora Migliore (Alt Max)</span>
+                        <span class="coord-val" style="font-size: 0.78rem; font-family: var(--font-mono); color: #fff; font-weight: 500;">
+                            <span style="color: #fff;">${bestTimeStr}</span> 
+                            <span ${altColor}>(${altVal !== null ? altVal.toFixed(1) + '°' : '--'})</span>
+                        </span>
+                    </div>
+                </div>
+            </div>
         `;
     });
 
     html += `
-                </tbody>
-            </table>
         </div>
         <p style="font-size: 0.72rem; color: var(--text-muted); text-align: right; margin-top: 0.75rem; border-top: 1px solid rgba(255,255,255,0.05); padding-top: 0.5rem; font-style: italic;">
             Dati comete per gentile concessione del Comet Observation Database (<a href="https://cobs.si" target="_blank" style="color: #fda4af; text-decoration: none;">COBS.si</a>)
