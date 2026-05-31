@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>VesperEye - Strumento Astronomico per Astrofili</title>
     <meta name="description" content="Calcola la visibilità dei pianeti, altezza, azimut e le posizioni delle lune di Giove, Saturno e Urano in tempo reale in base alla tua posizione GPS.">
-    <link rel="stylesheet" href="index.css?v=2.1">
+    <link rel="stylesheet" href="index.css?v=2.2">
     <!-- Astronomy Engine Core Library (Locale per funzionamento Offline e sicurezza) -->
     <script src="./astronomy.js"></script>
     <!-- Satellite.js Library (Per tracciamento in tempo reale e previsione passaggi della ISS) -->
@@ -150,6 +150,16 @@
                         <div class="coord-box">
                             <span class="coord-label">Tramonto (Sole)</span>
                             <span class="coord-val" id="sunSetVal">--:--</span>
+                        </div>
+                    </div>
+                    <div class="planet-coords" style="grid-template-columns: 1fr 1fr; margin-bottom: 0.75rem;">
+                        <div class="coord-box">
+                            <span class="coord-label">Sorgere (Luna)</span>
+                            <span class="coord-val" id="moonRiseVal">--:--</span>
+                        </div>
+                        <div class="coord-box">
+                            <span class="coord-label">Tramonto (Luna)</span>
+                            <span class="coord-val" id="moonSetVal">--:--</span>
                         </div>
                     </div>
                     <div class="planet-coords" style="grid-template-columns: 1fr; gap: 0.5rem;">
@@ -401,6 +411,6 @@
         </footer>
     </div>
 
-    <script src="app.js?v=2.1"></script>
+    <script src="app.js?v=2.2"></script>
 </body>
 </html>

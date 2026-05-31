@@ -766,8 +766,15 @@ function recalculate() {
         
         document.getElementById('sunRiseVal').innerText = riseTime ? formatTime(riseTime.date) : '--:--';
         document.getElementById('sunSetVal').innerText = setTime ? formatTime(setTime.date) : '--:--';
+
+        // Calcola Alba e Tramonto della Luna per la data corrente (limitDays = 1)
+        let moonRiseTime = Astronomy.SearchRiseSet(Astronomy.Body.Moon, observer, 1, startAstroTime, 1);
+        let moonSetTime = Astronomy.SearchRiseSet(Astronomy.Body.Moon, observer, -1, startAstroTime, 1);
+        
+        document.getElementById('moonRiseVal').innerText = moonRiseTime ? formatTime(moonRiseTime.date) : '--:--';
+        document.getElementById('moonSetVal').innerText = moonSetTime ? formatTime(moonSetTime.date) : '--:--';
     } catch (e) {
-        console.error("Errore Alba/Tramonto:", e);
+        console.error("Errore Alba/Tramonto Sole e Luna:", e);
     }
 
     // 2. Calcola lo stato della Luna
