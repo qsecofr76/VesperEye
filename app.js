@@ -230,7 +230,7 @@ const state = {
     mapActive: false,
     mapZoom: 15,
     skyOpacity: 5, // Opacità della volta celeste (0% - 100%)
-    mapType: 'dark', // 'dark' o 'satellite'
+    mapType: 'satellite', // 'dark' o 'satellite'
     mapLayers: {},
     lockRotation: false,
 
