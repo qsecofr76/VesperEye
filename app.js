@@ -538,6 +538,16 @@ function setupEventListeners() {
             dragStartAngle = getAngle(e);
             dragStartHeading = state.currentHeading || 0;
             
+            // Disabilita temporaneamente la transizione CSS durante il trascinamento per evitare scatti
+            const innerGroup = document.getElementById('planisphereInnerGroup');
+            if (innerGroup) {
+                innerGroup.style.transition = 'none';
+            }
+            const mapContainer = document.getElementById('planisphereMap');
+            if (mapContainer) {
+                mapContainer.style.transition = 'none';
+            }
+            
             planisphereSvg.style.cursor = 'grabbing';
             e.preventDefault();
         };
@@ -568,6 +578,16 @@ function setupEventListeners() {
             if (isDragging) {
                 isDragging = false;
                 planisphereSvg.style.cursor = 'grab';
+                
+                // Ripristina la transizione CSS fluida al termine del trascinamento
+                const innerGroup = document.getElementById('planisphereInnerGroup');
+                if (innerGroup) {
+                    innerGroup.style.transition = 'transform 0.15s cubic-bezier(0.1, 0.8, 0.3, 1)';
+                }
+                const mapContainer = document.getElementById('planisphereMap');
+                if (mapContainer) {
+                    mapContainer.style.transition = 'transform 0.15s cubic-bezier(0.1, 0.8, 0.3, 1)';
+                }
             }
         };
         
@@ -2866,9 +2886,17 @@ function deactivateCompass() {
         compassListenerActive = false;
     }
     
+    // Ripristina l'orientamento a Nord (0 gradi)
+    state.currentHeading = 0;
+    
     const innerGroup = document.getElementById('planisphereInnerGroup');
     if (innerGroup) {
         innerGroup.style.transform = 'rotate(0deg)';
+    }
+    
+    const mapContainer = document.getElementById('planisphereMap');
+    if (mapContainer) {
+        mapContainer.style.transform = 'rotate(0deg)';
     }
     
     const btn = document.getElementById('btnCompassToggle');
