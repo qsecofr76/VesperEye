@@ -229,7 +229,7 @@ const state = {
     map: null,
     mapActive: false,
     mapZoom: 15,
-    skyOpacity: 80, // Opacità della volta celeste (0% - 100%)
+    skyOpacity: 92, // Opacità della volta celeste (0% - 100%)
     mapType: 'dark', // 'dark' o 'satellite'
     mapLayers: {},
 
@@ -2926,7 +2926,7 @@ function calculatePlanisphere() {
                     // Etichette di testo solo per le stelle più brillanti (mag < 1.3) per non affollare la mappa
                     if (s.mag < 1.3 || s.name === "Stella Polare") {
                         starsHtml += `
-                            <text x="${x}" y="${y - 5.5}" fill="#ffffff" font-size="5.5" font-weight="600" text-anchor="middle" font-family="var(--font-sans)" style="stroke: #020617; stroke-width: 0.8px; paint-order: stroke fill; stroke-linejoin: round;">${s.name}</text>
+                            <text x="${x}" y="${y - 5.5}" fill="#ffffff" font-size="5.5" font-weight="500" text-anchor="middle" font-family="var(--font-sans)" style="stroke: #020617; stroke-width: 0.35px; paint-order: stroke fill; stroke-linejoin: round;">${s.name}</text>
                         `;
                     }
                 }
@@ -2987,7 +2987,7 @@ function calculatePlanisphere() {
                 const centerX = sumX / count;
                 const centerY = sumY / count;
                 constellationsHtml += `
-                    <text x="${centerX}" y="${centerY + 6}" fill="#c084fc" font-size="7.5" font-weight="700" text-anchor="middle" font-family="var(--font-sans)" style="stroke: #020617; stroke-width: 1.2px; paint-order: stroke fill; stroke-linejoin: round;">${cl.name}</text>
+                    <text x="${centerX}" y="${centerY + 6}" fill="#c084fc" font-size="7px" font-weight="600" text-anchor="middle" font-family="var(--font-sans)" style="stroke: #020617; stroke-width: 0.45px; paint-order: stroke fill; stroke-linejoin: round;">${cl.name}</text>
                 `;
             }
         });
@@ -3011,7 +3011,7 @@ function calculatePlanisphere() {
                         <circle cx="${x}" cy="${y}" r="3" fill="${p.color}" style="stroke: #fff; stroke-width: 0.5px; filter: drop-shadow(0 0 3px ${p.color}); cursor: pointer;" onclick="selectPlanet('${p.id}')">
                             <title>${p.name} (Alt: ${hor.altitude.toFixed(1)}°, Az: ${hor.azimuth.toFixed(1)}°)</title>
                         </circle>
-                        <text x="${x}" y="${y - 6}" fill="${p.color}" font-size="6" font-weight="700" text-anchor="middle" font-family="var(--font-sans)" style="stroke: #020617; stroke-width: 1px; paint-order: stroke fill; stroke-linejoin: round;">${p.name}</text>
+                        <text x="${x}" y="${y - 6}" fill="${p.color}" font-size="6" font-weight="600" text-anchor="middle" font-family="var(--font-sans)" style="stroke: #020617; stroke-width: 0.45px; paint-order: stroke fill; stroke-linejoin: round;">${p.name}</text>
                     `;
                 }
             } catch(e) {
@@ -3045,7 +3045,7 @@ function calculatePlanisphere() {
                 const ty = 100 + 81 * Math.sin(angleRad);
                 raysHtml += `
                     <line x1="100" y1="100" x2="${x}" y2="${y}" stroke="#f59e0b" stroke-width="1.2" stroke-dasharray="2 2" style="opacity: 0.75; filter: drop-shadow(0 0 2px #f59e0b);" />
-                    <text x="${tx}" y="${ty}" fill="#f59e0b" font-size="6" font-weight="700" text-anchor="middle" dominant-baseline="middle" font-family="var(--font-sans)" style="stroke: #020617; stroke-width: 1px; paint-order: stroke fill; stroke-linejoin: round;">Alba</text>
+                    <text x="${tx}" y="${ty}" fill="#f59e0b" font-size="6" font-weight="600" text-anchor="middle" dominant-baseline="middle" font-family="var(--font-sans)" style="stroke: #020617; stroke-width: 0.35px; paint-order: stroke fill; stroke-linejoin: round;">Alba</text>
                 `;
             }
             
@@ -3062,7 +3062,7 @@ function calculatePlanisphere() {
                 const ty = 100 + 81 * Math.sin(angleRad);
                 raysHtml += `
                     <line x1="100" y1="100" x2="${x}" y2="${y}" stroke="#ef4444" stroke-width="1.2" stroke-dasharray="2 2" style="opacity: 0.75; filter: drop-shadow(0 0 2px #ef4444);" />
-                    <text x="${tx}" y="${ty}" fill="#ef4444" font-size="6" font-weight="700" text-anchor="middle" dominant-baseline="middle" font-family="var(--font-sans)" style="stroke: #020617; stroke-width: 1px; paint-order: stroke fill; stroke-linejoin: round;">Tramonto</text>
+                    <text x="${tx}" y="${ty}" fill="#ef4444" font-size="6" font-weight="600" text-anchor="middle" dominant-baseline="middle" font-family="var(--font-sans)" style="stroke: #020617; stroke-width: 0.35px; paint-order: stroke fill; stroke-linejoin: round;">Tramonto</text>
                 `;
             }
             
@@ -3079,7 +3079,7 @@ function calculatePlanisphere() {
                 const ty = 100 + 81 * Math.sin(angleRad);
                 raysHtml += `
                     <line x1="100" y1="100" x2="${x}" y2="${y}" stroke="#38bdf8" stroke-width="1.2" stroke-dasharray="2 2" style="opacity: 0.75; filter: drop-shadow(0 0 2px #38bdf8);" />
-                    <text x="${tx}" y="${ty}" fill="#38bdf8" font-size="5.5" font-weight="700" text-anchor="middle" dominant-baseline="middle" font-family="var(--font-sans)" style="stroke: #020617; stroke-width: 1px; paint-order: stroke fill; stroke-linejoin: round;">Sorg. Luna</text>
+                    <text x="${tx}" y="${ty}" fill="#38bdf8" font-size="5.5" font-weight="600" text-anchor="middle" dominant-baseline="middle" font-family="var(--font-sans)" style="stroke: #020617; stroke-width: 0.35px; paint-order: stroke fill; stroke-linejoin: round;">Sorg. Luna</text>
                 `;
             }
             
@@ -3096,7 +3096,7 @@ function calculatePlanisphere() {
                 const ty = 100 + 81 * Math.sin(angleRad);
                 raysHtml += `
                     <line x1="100" y1="100" x2="${x}" y2="${y}" stroke="#6366f1" stroke-width="1.2" stroke-dasharray="2 2" style="opacity: 0.75; filter: drop-shadow(0 0 2px #6366f1);" />
-                    <text x="${tx}" y="${ty}" fill="#6366f1" font-size="5.5" font-weight="700" text-anchor="middle" dominant-baseline="middle" font-family="var(--font-sans)" style="stroke: #020617; stroke-width: 1px; paint-order: stroke fill; stroke-linejoin: round;">Tram. Luna</text>
+                    <text x="${tx}" y="${ty}" fill="#6366f1" font-size="5.5" font-weight="600" text-anchor="middle" dominant-baseline="middle" font-family="var(--font-sans)" style="stroke: #020617; stroke-width: 0.35px; paint-order: stroke fill; stroke-linejoin: round;">Tram. Luna</text>
                 `;
             }
 
@@ -3166,14 +3166,14 @@ function calculatePlanisphere() {
                         cometsHtml += `
                             <g>
                                 <!-- Coda a ventaglio sfumata della cometa (struttura principale tridimensionale) -->
-                                <polygon points="${x},${y} ${tx1},${ty1} ${tx2},${ty2}" fill="rgba(192, 132, 252, 0.4)" stroke="rgba(192, 132, 252, 0.2)" stroke-width="0.4" style="filter: drop-shadow(0 0 1.5px rgba(192, 132, 252, 0.5));" />
+                                <polygon points="${x},${y} ${tx1},${ty1} ${tx2},${ty2}" fill="rgba(192, 132, 252, 0.4)" stroke="rgba(192, 132, 252, 0.2)" stroke-width="0.35" style="filter: drop-shadow(0 0 1.5px rgba(192, 132, 252, 0.5));" />
                                 <!-- Coda centrale ionica (più densa e luminosa) -->
-                                <line x1="${x}" y1="${y}" x2="${tx3}" y2="${ty3}" style="stroke: rgba(216, 180, 254, 0.9); stroke-width: 1.1px; stroke-linecap: round;" />
+                                <line x1="${x}" y1="${y}" x2="${tx3}" y2="${ty3}" style="stroke: rgba(216, 180, 254, 0.9); stroke-width: 0.5px; stroke-linecap: round;" />
                                 <!-- Nucleo della cometa -->
-                                <circle cx="${x}" cy="${y}" r="2" fill="#c084fc" style="stroke: #fff; stroke-width: 0.5px; filter: drop-shadow(0 0 3px #c084fc); cursor: pointer;">
+                                <circle cx="${x}" cy="${y}" r="2" fill="#c084fc" style="stroke: #fff; stroke-width: 0.35px; filter: drop-shadow(0 0 3px #c084fc); cursor: pointer;">
                                     <title>${comet.comet_fullname || comet.comet_name} (Alt: ${hor.altitude.toFixed(1)}°, Az: ${hor.azimuth.toFixed(1)}°, Mag: ${comet.magnitude !== null ? comet.magnitude.toFixed(1) : '--'})</title>
                                 </circle>
-                                <text x="${x}" y="${y - 4.5}" fill="#c084fc" font-size="5.5" font-weight="700" text-anchor="middle" font-family="var(--font-sans)" style="stroke: #020617; stroke-width: 0.8px; paint-order: stroke fill; stroke-linejoin: round;">${comet.comet_name}</text>
+                                <text x="${x}" y="${y - 4.5}" fill="#c084fc" font-size="5.5" font-weight="500" text-anchor="middle" font-family="var(--font-sans)" style="stroke: #020617; stroke-width: 0.35px; paint-order: stroke fill; stroke-linejoin: round;">${comet.comet_name}</text>
                             </g>
                         `;
                     }
