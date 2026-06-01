@@ -6,8 +6,8 @@ console.log("Astronomy caricata:", typeof Astronomy !== 'undefined');
 console.log("Astronomy.Body:", Astronomy.Body);
 
 const state = {
-    lat: 45.7208,
-    lon: 12.4635,
+    lat: 45.716370,
+    lon: 12.456541,
     alt: 12
 };
 

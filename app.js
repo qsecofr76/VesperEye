@@ -5,7 +5,7 @@
 
 // Configurazione Città Italiane (Preset)
 const CITIES = {
-    pontedipiave: { lat: 45.7208, lon: 12.4635, alt: 12, name: "Ponte di Piave" },
+    pontedipiave: { lat: 45.716370, lon: 12.456541, alt: 12, name: "Ponte di Piave" },
     roma: { lat: 41.9028, lon: 12.4964, alt: 53, name: "Roma" },
     milano: { lat: 45.4642, lon: 9.1900, alt: 120, name: "Milano" },
     napoli: { lat: 40.8518, lon: 14.2681, alt: 17, name: "Napoli" },
@@ -213,8 +213,8 @@ const CONSTELLATIONS = [
 
 // Stato dell'applicazione
 const state = {
-    lat: 45.7208,
-    lon: 12.4635,
+    lat: 45.716370,
+    lon: 12.456541,
     alt: 12,
     isRealTime: true,
     customDate: new Date(),
