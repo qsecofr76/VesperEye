@@ -3604,7 +3604,7 @@ function initPlanisphereMap() {
             state.observerMarker.setLatLng(center);
         }
         
-        updateGPSDisplay(false, "Centratura Fine");
+        updateGPSDisplay(false, "Centratura X Y");
     });
     
     state.map.on('dragend', () => {
