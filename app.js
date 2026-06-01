@@ -239,7 +239,11 @@ const state = {
     filterPlanets: true,
     filterComets: true,
     filterRays: true,
-    filterGrid: true
+    filterGrid: true,
+
+    // Azimut Personale
+    personalAzActive: false,
+    personalAzValue: 180
 };
 
 // Stato tracciamento ISS
@@ -321,7 +325,9 @@ function initDOM() {
         filterPlanets: document.getElementById('filterPlanets'),
         filterComets: document.getElementById('filterComets'),
         filterRays: document.getElementById('filterRays'),
-        filterGrid: document.getElementById('filterGrid')
+        filterGrid: document.getElementById('filterGrid'),
+        filterPersonalAz: document.getElementById('filterPersonalAz'),
+        inputPersonalAz: document.getElementById('inputPersonalAz')
     };
     // Rimuovi o metti in sicurezza se gli elementi non esistono
     ctx = dom.moonsCanvas.getContext('2d');
@@ -640,6 +646,20 @@ function setupEventListeners() {
             });
         }
     });
+
+    if (dom.filterPersonalAz) {
+        dom.filterPersonalAz.addEventListener('change', (e) => {
+            state.personalAzActive = e.target.checked;
+            calculatePlanisphere();
+        });
+    }
+
+    if (dom.inputPersonalAz) {
+        dom.inputPersonalAz.addEventListener('input', (e) => {
+            state.personalAzValue = parseFloat(e.target.value) || 0;
+            calculatePlanisphere();
+        });
+    }
 }
 
 // Funzione di debug per interrogare le API ufficiali NASA JPL Horizons
@@ -3024,104 +3044,121 @@ function calculatePlanisphere() {
     planisphereConstellationsGroup.innerHTML = constellationsHtml;
     planispherePlanetsGroup.innerHTML = planetsHtml;
     
-    // 3.5. Disegna i raggi di azimut sul planisfero (Alba, Tramonto, Sorgere Luna, Posizioni Reali)
+    // 3.5. Disegna i raggi di azimut sul planisfero (Alba, Tramonto, Sorgere Luna, Posizioni Reali, Azimut Personale)
     const planisphereAzimuthRaysGroup = document.getElementById('planisphereAzimuthRaysGroup');
     let raysHtml = '';
-    if (state.filterRays && planisphereAzimuthRaysGroup) {
-        try {
-            const dateStart = new Date(activeDate.getFullYear(), activeDate.getMonth(), activeDate.getDate(), 0, 0, 0);
-            const startAstroTime = Astronomy.MakeTime(dateStart);
-            
-            // Alba Sole
-            let sunRise = Astronomy.SearchRiseSet(Astronomy.Body.Sun, observer, 1, startAstroTime, 1);
-            if (sunRise) {
-                const t = Astronomy.MakeTime(sunRise.date);
-                const equ = Astronomy.Equator(Astronomy.Body.Sun, t, observer, true, true);
-                const hor = Astronomy.Horizon(t, observer, equ.ra, equ.dec, 'normal');
-                const angleRad = (hor.azimuth - 90) * Math.PI / 180;
-                const x = 100 + 90 * Math.cos(angleRad);
-                const y = 100 + 90 * Math.sin(angleRad);
-                const tx = 100 + 81 * Math.cos(angleRad);
-                const ty = 100 + 81 * Math.sin(angleRad);
+    if (planisphereAzimuthRaysGroup) {
+        if (state.filterRays) {
+            try {
+                const dateStart = new Date(activeDate.getFullYear(), activeDate.getMonth(), activeDate.getDate(), 0, 0, 0);
+                const startAstroTime = Astronomy.MakeTime(dateStart);
+                
+                // Alba Sole
+                let sunRise = Astronomy.SearchRiseSet(Astronomy.Body.Sun, observer, 1, startAstroTime, 1);
+                if (sunRise) {
+                    const t = Astronomy.MakeTime(sunRise.date);
+                    const equ = Astronomy.Equator(Astronomy.Body.Sun, t, observer, true, true);
+                    const hor = Astronomy.Horizon(t, observer, equ.ra, equ.dec, 'normal');
+                    const angleRad = (hor.azimuth - 90) * Math.PI / 180;
+                    const x = 100 + 90 * Math.cos(angleRad);
+                    const y = 100 + 90 * Math.sin(angleRad);
+                    const tx = 100 + 81 * Math.cos(angleRad);
+                    const ty = 100 + 81 * Math.sin(angleRad);
+                    raysHtml += `
+                        <line x1="100" y1="100" x2="${x}" y2="${y}" stroke="#f59e0b" stroke-width="1.2" stroke-dasharray="2 2" style="opacity: 0.75; filter: drop-shadow(0 0 2px #f59e0b);" />
+                        <text x="${tx}" y="${ty}" fill="#f59e0b" font-size="6" font-weight="600" text-anchor="middle" dominant-baseline="middle" font-family="var(--font-sans)" style="stroke: #020617; stroke-width: 0.35px; paint-order: stroke fill; stroke-linejoin: round;">Alba</text>
+                    `;
+                }
+                
+                // Tramonto Sole
+                let sunSet = Astronomy.SearchRiseSet(Astronomy.Body.Sun, observer, -1, startAstroTime, 1);
+                if (sunSet) {
+                    const t = Astronomy.MakeTime(sunSet.date);
+                    const equ = Astronomy.Equator(Astronomy.Body.Sun, t, observer, true, true);
+                    const hor = Astronomy.Horizon(t, observer, equ.ra, equ.dec, 'normal');
+                    const angleRad = (hor.azimuth - 90) * Math.PI / 180;
+                    const x = 100 + 90 * Math.cos(angleRad);
+                    const y = 100 + 90 * Math.sin(angleRad);
+                    const tx = 100 + 81 * Math.cos(angleRad);
+                    const ty = 100 + 81 * Math.sin(angleRad);
+                    raysHtml += `
+                        <line x1="100" y1="100" x2="${x}" y2="${y}" stroke="#ef4444" stroke-width="1.2" stroke-dasharray="2 2" style="opacity: 0.75; filter: drop-shadow(0 0 2px #ef4444);" />
+                        <text x="${tx}" y="${ty}" fill="#ef4444" font-size="6" font-weight="600" text-anchor="middle" dominant-baseline="middle" font-family="var(--font-sans)" style="stroke: #020617; stroke-width: 0.35px; paint-order: stroke fill; stroke-linejoin: round;">Tramonto</text>
+                    `;
+                }
+                
+                // Sorgere Luna
+                let moonRise = Astronomy.SearchRiseSet(Astronomy.Body.Moon, observer, 1, startAstroTime, 1);
+                if (moonRise) {
+                    const t = Astronomy.MakeTime(moonRise.date);
+                    const equ = Astronomy.Equator(Astronomy.Body.Moon, t, observer, true, true);
+                    const hor = Astronomy.Horizon(t, observer, equ.ra, equ.dec, 'normal');
+                    const angleRad = (hor.azimuth - 90) * Math.PI / 180;
+                    const x = 100 + 90 * Math.cos(angleRad);
+                    const y = 100 + 90 * Math.sin(angleRad);
+                    const tx = 100 + 81 * Math.cos(angleRad);
+                    const ty = 100 + 81 * Math.sin(angleRad);
+                    raysHtml += `
+                        <line x1="100" y1="100" x2="${x}" y2="${y}" stroke="#38bdf8" stroke-width="1.2" stroke-dasharray="2 2" style="opacity: 0.75; filter: drop-shadow(0 0 2px #38bdf8);" />
+                        <text x="${tx}" y="${ty}" fill="#38bdf8" font-size="5.5" font-weight="600" text-anchor="middle" dominant-baseline="middle" font-family="var(--font-sans)" style="stroke: #020617; stroke-width: 0.35px; paint-order: stroke fill; stroke-linejoin: round;">Sorg. Luna</text>
+                    `;
+                }
+                
+                // Tramonto Luna
+                let moonSet = Astronomy.SearchRiseSet(Astronomy.Body.Moon, observer, -1, startAstroTime, 1);
+                if (moonSet) {
+                    const t = Astronomy.MakeTime(moonSet.date);
+                    const equ = Astronomy.Equator(Astronomy.Body.Moon, t, observer, true, true);
+                    const hor = Astronomy.Horizon(t, observer, equ.ra, equ.dec, 'normal');
+                    const angleRad = (hor.azimuth - 90) * Math.PI / 180;
+                    const x = 100 + 90 * Math.cos(angleRad);
+                    const y = 100 + 90 * Math.sin(angleRad);
+                    const tx = 100 + 81 * Math.cos(angleRad);
+                    const ty = 100 + 81 * Math.sin(angleRad);
+                    raysHtml += `
+                        <line x1="100" y1="100" x2="${x}" y2="${y}" stroke="#6366f1" stroke-width="1.2" stroke-dasharray="2 2" style="opacity: 0.75; filter: drop-shadow(0 0 2px #6366f1);" />
+                        <text x="${tx}" y="${ty}" fill="#6366f1" font-size="5.5" font-weight="600" text-anchor="middle" dominant-baseline="middle" font-family="var(--font-sans)" style="stroke: #020617; stroke-width: 0.35px; paint-order: stroke fill; stroke-linejoin: round;">Tram. Luna</text>
+                    `;
+                }
+    
+                // Posizione Sole Istantanea (Tratteggiata gialla)
+                const sunEqu = Astronomy.Equator(Astronomy.Body.Sun, astroTime, observer, true, true);
+                const sunHor = Astronomy.Horizon(astroTime, observer, sunEqu.ra, sunEqu.dec, 'normal');
+                const sunAngleRad = (sunHor.azimuth - 90) * Math.PI / 180;
+                const sunX = 100 + 90 * Math.cos(sunAngleRad);
+                const sunY = 100 + 90 * Math.sin(sunAngleRad);
                 raysHtml += `
-                    <line x1="100" y1="100" x2="${x}" y2="${y}" stroke="#f59e0b" stroke-width="1.2" stroke-dasharray="2 2" style="opacity: 0.75; filter: drop-shadow(0 0 2px #f59e0b);" />
-                    <text x="${tx}" y="${ty}" fill="#f59e0b" font-size="6" font-weight="600" text-anchor="middle" dominant-baseline="middle" font-family="var(--font-sans)" style="stroke: #020617; stroke-width: 0.35px; paint-order: stroke fill; stroke-linejoin: round;">Alba</text>
+                    <line x1="100" y1="100" x2="${sunX}" y2="${sunY}" stroke="#eab308" stroke-dasharray="3 3" stroke-width="0.8" style="opacity: 0.6; filter: drop-shadow(0 0 1.5px #eab308);" />
                 `;
-            }
-            
-            // Tramonto Sole
-            let sunSet = Astronomy.SearchRiseSet(Astronomy.Body.Sun, observer, -1, startAstroTime, 1);
-            if (sunSet) {
-                const t = Astronomy.MakeTime(sunSet.date);
-                const equ = Astronomy.Equator(Astronomy.Body.Sun, t, observer, true, true);
-                const hor = Astronomy.Horizon(t, observer, equ.ra, equ.dec, 'normal');
-                const angleRad = (hor.azimuth - 90) * Math.PI / 180;
-                const x = 100 + 90 * Math.cos(angleRad);
-                const y = 100 + 90 * Math.sin(angleRad);
-                const tx = 100 + 81 * Math.cos(angleRad);
-                const ty = 100 + 81 * Math.sin(angleRad);
+    
+                // Posizione Luna Istantanea (Tratteggiata argento)
+                const moonEqu = Astronomy.Equator(Astronomy.Body.Moon, astroTime, observer, true, true);
+                const moonHor = Astronomy.Horizon(astroTime, observer, moonEqu.ra, moonEqu.dec, 'normal');
+                const moonAngleRad = (moonHor.azimuth - 90) * Math.PI / 180;
+                const moonX = 100 + 90 * Math.cos(moonAngleRad);
+                const moonY = 100 + 90 * Math.sin(moonAngleRad);
                 raysHtml += `
-                    <line x1="100" y1="100" x2="${x}" y2="${y}" stroke="#ef4444" stroke-width="1.2" stroke-dasharray="2 2" style="opacity: 0.75; filter: drop-shadow(0 0 2px #ef4444);" />
-                    <text x="${tx}" y="${ty}" fill="#ef4444" font-size="6" font-weight="600" text-anchor="middle" dominant-baseline="middle" font-family="var(--font-sans)" style="stroke: #020617; stroke-width: 0.35px; paint-order: stroke fill; stroke-linejoin: round;">Tramonto</text>
+                    <line x1="100" y1="100" x2="${moonX}" y2="${moonY}" stroke="#e2e8f0" stroke-dasharray="3 3" stroke-width="0.8" style="opacity: 0.6; filter: drop-shadow(0 0 1.5px #e2e8f0);" />
                 `;
+            } catch(e) {
+                console.error("Errore nel calcolo dei raggi di azimut sul planisfero:", e);
             }
-            
-            // Sorgere Luna
-            let moonRise = Astronomy.SearchRiseSet(Astronomy.Body.Moon, observer, 1, startAstroTime, 1);
-            if (moonRise) {
-                const t = Astronomy.MakeTime(moonRise.date);
-                const equ = Astronomy.Equator(Astronomy.Body.Moon, t, observer, true, true);
-                const hor = Astronomy.Horizon(t, observer, equ.ra, equ.dec, 'normal');
-                const angleRad = (hor.azimuth - 90) * Math.PI / 180;
-                const x = 100 + 90 * Math.cos(angleRad);
-                const y = 100 + 90 * Math.sin(angleRad);
-                const tx = 100 + 81 * Math.cos(angleRad);
-                const ty = 100 + 81 * Math.sin(angleRad);
-                raysHtml += `
-                    <line x1="100" y1="100" x2="${x}" y2="${y}" stroke="#38bdf8" stroke-width="1.2" stroke-dasharray="2 2" style="opacity: 0.75; filter: drop-shadow(0 0 2px #38bdf8);" />
-                    <text x="${tx}" y="${ty}" fill="#38bdf8" font-size="5.5" font-weight="600" text-anchor="middle" dominant-baseline="middle" font-family="var(--font-sans)" style="stroke: #020617; stroke-width: 0.35px; paint-order: stroke fill; stroke-linejoin: round;">Sorg. Luna</text>
-                `;
-            }
-            
-            // Tramonto Luna
-            let moonSet = Astronomy.SearchRiseSet(Astronomy.Body.Moon, observer, -1, startAstroTime, 1);
-            if (moonSet) {
-                const t = Astronomy.MakeTime(moonSet.date);
-                const equ = Astronomy.Equator(Astronomy.Body.Moon, t, observer, true, true);
-                const hor = Astronomy.Horizon(t, observer, equ.ra, equ.dec, 'normal');
-                const angleRad = (hor.azimuth - 90) * Math.PI / 180;
-                const x = 100 + 90 * Math.cos(angleRad);
-                const y = 100 + 90 * Math.sin(angleRad);
-                const tx = 100 + 81 * Math.cos(angleRad);
-                const ty = 100 + 81 * Math.sin(angleRad);
-                raysHtml += `
-                    <line x1="100" y1="100" x2="${x}" y2="${y}" stroke="#6366f1" stroke-width="1.2" stroke-dasharray="2 2" style="opacity: 0.75; filter: drop-shadow(0 0 2px #6366f1);" />
-                    <text x="${tx}" y="${ty}" fill="#6366f1" font-size="5.5" font-weight="600" text-anchor="middle" dominant-baseline="middle" font-family="var(--font-sans)" style="stroke: #020617; stroke-width: 0.35px; paint-order: stroke fill; stroke-linejoin: round;">Tram. Luna</text>
-                `;
-            }
-
-            // Posizione Sole Istantanea (Tratteggiata gialla)
-            const sunEqu = Astronomy.Equator(Astronomy.Body.Sun, astroTime, observer, true, true);
-            const sunHor = Astronomy.Horizon(astroTime, observer, sunEqu.ra, sunEqu.dec, 'normal');
-            const sunAngleRad = (sunHor.azimuth - 90) * Math.PI / 180;
-            const sunX = 100 + 90 * Math.cos(sunAngleRad);
-            const sunY = 100 + 90 * Math.sin(sunAngleRad);
-            raysHtml += `
-                <line x1="100" y1="100" x2="${sunX}" y2="${sunY}" stroke="#eab308" stroke-dasharray="3 3" stroke-width="0.8" style="opacity: 0.6; filter: drop-shadow(0 0 1.5px #eab308);" />
-            `;
-
-            // Posizione Luna Istantanea (Tratteggiata argento)
-            const moonEqu = Astronomy.Equator(Astronomy.Body.Moon, astroTime, observer, true, true);
-            const moonHor = Astronomy.Horizon(astroTime, observer, moonEqu.ra, moonEqu.dec, 'normal');
-            const moonAngleRad = (moonHor.azimuth - 90) * Math.PI / 180;
-            const moonX = 100 + 90 * Math.cos(moonAngleRad);
-            const moonY = 100 + 90 * Math.sin(moonAngleRad);
-            raysHtml += `
-                <line x1="100" y1="100" x2="${moonX}" y2="${moonY}" stroke="#e2e8f0" stroke-dasharray="3 3" stroke-width="0.8" style="opacity: 0.6; filter: drop-shadow(0 0 1.5px #e2e8f0);" />
-            `;
-        } catch(e) {
-            console.error("Errore nel calcolo dei raggi di azimut sul planisfero:", e);
         }
+
+        // Azimut Personale (disegnato se attivo indipendentemente)
+        if (state.personalAzActive) {
+            const azVal = state.personalAzValue;
+            const angleRad = (azVal - 90) * Math.PI / 180;
+            const x = 100 + 90 * Math.cos(angleRad);
+            const y = 100 + 90 * Math.sin(angleRad);
+            const tx = 100 + 81 * Math.cos(angleRad);
+            const ty = 100 + 81 * Math.sin(angleRad);
+            raysHtml += `
+                <line x1="100" y1="100" x2="${x}" y2="${y}" stroke="#f43f5e" stroke-width="1.2" stroke-dasharray="3 3" style="opacity: 0.85; filter: drop-shadow(0 0 2px #f43f5e);" />
+                <text x="${tx}" y="${ty}" fill="#f43f5e" font-size="5.5" font-weight="600" text-anchor="middle" dominant-baseline="middle" font-family="var(--font-sans)" style="stroke: #020617; stroke-width: 0.35px; paint-order: stroke fill; stroke-linejoin: round;">Az: ${azVal}°</text>
+            `;
+        }
+        
         planisphereAzimuthRaysGroup.innerHTML = raysHtml;
     }
     
