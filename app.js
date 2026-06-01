@@ -232,6 +232,7 @@ const state = {
     skyOpacity: 5, // Opacità della volta celeste (0% - 100%)
     mapType: 'dark', // 'dark' o 'satellite'
     mapLayers: {},
+    lockRotation: false,
 
     // Filtri di visualizzazione planisfero
     filterStars: true,
@@ -314,6 +315,7 @@ function initDOM() {
         selectMapType: document.getElementById('selectMapType'),
         sliderMapZoom: document.getElementById('sliderMapZoom'),
         mapZoomDisplay: document.getElementById('mapZoomDisplay'),
+        checkLockRotation: document.getElementById('checkLockRotation'),
         sliderSkyOpacity: document.getElementById('sliderSkyOpacity'),
         skyOpacityDisplay: document.getElementById('skyOpacityDisplay'),
         planisphereMap: document.getElementById('planisphereMap'),
@@ -527,6 +529,7 @@ function setupEventListeners() {
         };
         
         const handleDragStart = (e) => {
+            if (state.lockRotation) return;
             // Disattiva la bussola reale automatica se l'utente trascina manualmente
             if (state.compassActive) {
                 deactivateCompass();
@@ -540,7 +543,7 @@ function setupEventListeners() {
         };
         
         const handleDragMove = (e) => {
-            if (!isDragging) return;
+            if (state.lockRotation || !isDragging) return;
             const currentAngle = getAngle(e);
             const diff = currentAngle - dragStartAngle;
             let newHeading = (dragStartHeading - diff) % 360;
@@ -658,6 +661,13 @@ function setupEventListeners() {
         dom.inputPersonalAz.addEventListener('input', (e) => {
             state.personalAzValue = parseFloat(e.target.value) || 0;
             calculatePlanisphere();
+        });
+    }
+
+    if (dom.checkLockRotation) {
+        dom.checkLockRotation.addEventListener('change', (e) => {
+            state.lockRotation = e.target.checked;
+            updateLockRotationMode();
         });
     }
 }
@@ -3551,6 +3561,39 @@ function initPlanisphereMap() {
         keyboard: false
     });
     
+    // Configura eventi drag e zoom per la centratura fine
+    state.map.on('drag', () => {
+        if (!state.lockRotation) return;
+        const center = state.map.getCenter();
+        state.lat = center.lat;
+        state.lon = center.lng;
+        
+        if (dom.inputLat) dom.inputLat.value = state.lat.toFixed(6);
+        if (dom.inputLon) dom.inputLon.value = state.lon.toFixed(6);
+        if (dom.selectCity) dom.selectCity.value = 'current';
+        
+        if (state.observerMarker) {
+            state.observerMarker.setLatLng(center);
+        }
+        
+        updateGPSDisplay(false, "Centratura Fine");
+    });
+    
+    state.map.on('dragend', () => {
+        if (!state.lockRotation) return;
+        saveSettings();
+        recalculate();
+    });
+    
+    state.map.on('zoomend', () => {
+        if (!state.lockRotation) return;
+        const currentZoom = state.map.getZoom();
+        state.mapZoom = currentZoom;
+        if (dom.sliderMapZoom) dom.sliderMapZoom.value = currentZoom;
+        if (dom.mapZoomDisplay) dom.mapZoomDisplay.innerText = currentZoom;
+        saveSettings();
+    });
+    
     // Configura i Layer
     state.mapLayers.dark = L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
         maxZoom: 20
@@ -3575,6 +3618,9 @@ function initPlanisphereMap() {
     
     // Forza il ricalcolo del planisfero per aggiornare lo sfondo del cielo
     updateSkyOpacity();
+    
+    // Aggiorna lo stato di blocco rotazione e drag
+    updateLockRotationMode();
 }
 
 // Aggiunge un indicatore luminoso dell'osservatore al centro esatto
@@ -3586,7 +3632,7 @@ function addObserverMarker() {
         iconSize: [12, 12],
         iconAnchor: [6, 6]
     });
-    L.marker([state.lat, state.lon], { icon: observerIcon }).addTo(state.map);
+    state.observerMarker = L.marker([state.lat, state.lon], { icon: observerIcon }).addTo(state.map);
 }
 
 // Aggiorna l'opacità dello sfondo del planisfero (volta celeste) per rivelare la mappa sottostante
@@ -3596,6 +3642,46 @@ function updateSkyOpacity() {
         dom.planisphereSvg.style.backgroundColor = `rgba(2, 6, 23, ${state.skyOpacity / 100})`;
     } else {
         dom.planisphereSvg.style.backgroundColor = '#020617';
+    }
+}
+
+// Gestisce la modalità blocco rotazione planisfero e abilitazione trascinamento mappa
+function updateLockRotationMode() {
+    if (!state.map) return;
+    
+    if (state.lockRotation) {
+        // Abilita trascinamento e zoom sulla mappa Leaflet
+        state.map.dragging.enable();
+        state.map.touchZoom.enable();
+        state.map.doubleClickZoom.enable();
+        
+        // Permetti agli eventi del mouse di passare attraverso l'SVG alla mappa sottostante
+        if (dom.planisphereSvg) {
+            dom.planisphereSvg.style.pointerEvents = 'none';
+        }
+        if (dom.planisphereMap) {
+            dom.planisphereMap.style.pointerEvents = 'auto';
+            dom.planisphereMap.style.cursor = 'grab';
+        }
+        
+        // Se la bussola reale è attiva, disattiviamola!
+        if (state.compassActive) {
+            deactivateCompass();
+        }
+    } else {
+        // Disabilita trascinamento e zoom sulla mappa Leaflet
+        state.map.dragging.disable();
+        state.map.touchZoom.disable();
+        state.map.doubleClickZoom.disable();
+        
+        // Ripristina l'interattività dell'SVG planisfero
+        if (dom.planisphereSvg) {
+            dom.planisphereSvg.style.pointerEvents = 'auto';
+            dom.planisphereSvg.style.cursor = 'grab';
+        }
+        if (dom.planisphereMap) {
+            dom.planisphereMap.style.pointerEvents = 'none';
+        }
     }
 }
 

@@ -350,6 +350,13 @@
                                         <option value="satellite">Satellite Reale</option>
                                     </select>
                                 </div>
+                                <div style="display: flex; align-items: center; gap: 0.5rem;">
+                                    <span style="font-size: 0.85rem; color: var(--text-secondary); white-space: nowrap;" title="Blocca rotazione del cielo e permette il trascinamento della mappa con il mouse per regolare di precisione la posizione">Centratura Fine:</span>
+                                    <label class="switch" style="transform: scale(0.85);">
+                                        <input type="checkbox" id="checkLockRotation">
+                                        <span class="slider"></span>
+                                    </label>
+                                </div>
                                 <div style="display: flex; align-items: center; gap: 0.5rem; min-width: 150px; flex: 1; max-width: 180px;">
                                     <label for="sliderMapZoom" style="font-size: 0.85rem; color: var(--text-secondary); white-space: nowrap;">Zoom:</label>
                                     <input type="range" id="sliderMapZoom" min="8" max="18" value="15" style="width: 100%; accent-color: #a855f7; height: 6px; cursor: pointer; border-radius: 4px; border: 1px solid rgba(255,255,255,0.1);">
@@ -403,6 +410,16 @@
                                 <input type="checkbox" id="filterGrid" checked style="accent-color: #a855f7; width: 14px; height: 14px; cursor: pointer;">
                                 Griglia Celeste
                             </label>
+
+                            <!-- Checkbox Azimut Personale -->
+                            <label style="display: inline-flex; align-items: center; gap: 0.4rem; font-size: 0.8rem; color: #fff; cursor: pointer; user-select: none;">
+                                <input type="checkbox" id="filterPersonalAz" style="accent-color: #a855f7; width: 14px; height: 14px; cursor: pointer;">
+                                Azimut Personale
+                            </label>
+                            <div id="personalAzContainer" style="display: inline-flex; align-items: center; gap: 0.35rem; margin-left: -0.25rem;">
+                                <input type="number" id="inputPersonalAz" min="0" max="360" value="180" style="width: 50px; padding: 0.15rem 0.35rem; font-size: 0.8rem; background: #0f172a; border: 1px solid rgba(255,255,255,0.15); border-radius: 4px; color: #fff; text-align: center; height: 22px;">
+                                <span style="font-size: 0.8rem; color: var(--text-secondary);">°</span>
+                            </div>
                         </div>
                     </div>
                     
@@ -446,14 +463,14 @@
                                     </g>
                                     
                                     <!-- ==================== TESTI COMPASSO VERDI NEON (In-The-Sky.org Style) ==================== -->
-                                    <text x="100" y="23" class="compass-label" style="fill: #22c55e; font-weight: 600; font-size: 8.5px; text-anchor: middle; dominant-baseline: middle; stroke: #020617; stroke-width: 0.5px; paint-order: stroke fill; stroke-linejoin: round;">N</text>
-                                    <text x="159.4" y="42" class="compass-label" style="fill: #4ade80; font-weight: 500; font-size: 6.5px; text-anchor: middle; dominant-baseline: middle; stroke: #020617; stroke-width: 0.4px; paint-order: stroke fill; stroke-linejoin: round;">NE</text>
-                                    <text x="181" y="101.5" class="compass-label" style="fill: #22c55e; font-weight: 600; font-size: 8.5px; text-anchor: middle; dominant-baseline: middle; stroke: #020617; stroke-width: 0.5px; paint-order: stroke fill; stroke-linejoin: round;">E</text>
-                                    <text x="159.4" y="161" class="compass-label" style="fill: #4ade80; font-weight: 500; font-size: 6.5px; text-anchor: middle; dominant-baseline: middle; stroke: #020617; stroke-width: 0.4px; paint-order: stroke fill; stroke-linejoin: round;">SE</text>
-                                    <text x="100" y="181" class="compass-label" style="fill: #22c55e; font-weight: 600; font-size: 8.5px; text-anchor: middle; dominant-baseline: middle; stroke: #020617; stroke-width: 0.5px; paint-order: stroke fill; stroke-linejoin: round;">S</text>
-                                    <text x="40.6" y="161" class="compass-label" style="fill: #4ade80; font-weight: 500; font-size: 6.5px; text-anchor: middle; dominant-baseline: middle; stroke: #020617; stroke-width: 0.4px; paint-order: stroke fill; stroke-linejoin: round;">SW</text>
-                                    <text x="19" y="101.5" class="compass-label" style="fill: #22c55e; font-weight: 600; font-size: 8.5px; text-anchor: middle; dominant-baseline: middle; stroke: #020617; stroke-width: 0.5px; paint-order: stroke fill; stroke-linejoin: round;">W</text>
-                                    <text x="40.6" y="42" class="compass-label" style="fill: #4ade80; font-weight: 500; font-size: 6.5px; text-anchor: middle; dominant-baseline: middle; stroke: #020617; stroke-width: 0.4px; paint-order: stroke fill; stroke-linejoin: round;">NW</text>
+                                    <text x="100" y="5.5" class="compass-label" style="fill: #22c55e; font-weight: 600; font-size: 8.5px; text-anchor: middle; dominant-baseline: middle; stroke: #020617; stroke-width: 0.5px; paint-order: stroke fill; stroke-linejoin: round;">N</text>
+                                    <text x="166.5" y="33.5" class="compass-label" style="fill: #4ade80; font-weight: 500; font-size: 6.5px; text-anchor: middle; dominant-baseline: middle; stroke: #020617; stroke-width: 0.4px; paint-order: stroke fill; stroke-linejoin: round;">NE</text>
+                                    <text x="194.5" y="100" class="compass-label" style="fill: #22c55e; font-weight: 600; font-size: 8.5px; text-anchor: middle; dominant-baseline: middle; stroke: #020617; stroke-width: 0.5px; paint-order: stroke fill; stroke-linejoin: round;">E</text>
+                                    <text x="166.5" y="166.5" class="compass-label" style="fill: #4ade80; font-weight: 500; font-size: 6.5px; text-anchor: middle; dominant-baseline: middle; stroke: #020617; stroke-width: 0.4px; paint-order: stroke fill; stroke-linejoin: round;">SE</text>
+                                    <text x="100" y="194.5" class="compass-label" style="fill: #22c55e; font-weight: 600; font-size: 8.5px; text-anchor: middle; dominant-baseline: middle; stroke: #020617; stroke-width: 0.5px; paint-order: stroke fill; stroke-linejoin: round;">S</text>
+                                    <text x="33.5" y="166.5" class="compass-label" style="fill: #4ade80; font-weight: 500; font-size: 6.5px; text-anchor: middle; dominant-baseline: middle; stroke: #020617; stroke-width: 0.4px; paint-order: stroke fill; stroke-linejoin: round;">SW</text>
+                                    <text x="5.5" y="100" class="compass-label" style="fill: #22c55e; font-weight: 600; font-size: 8.5px; text-anchor: middle; dominant-baseline: middle; stroke: #020617; stroke-width: 0.5px; paint-order: stroke fill; stroke-linejoin: round;">W</text>
+                                    <text x="33.5" y="33.5" class="compass-label" style="fill: #4ade80; font-weight: 500; font-size: 6.5px; text-anchor: middle; dominant-baseline: middle; stroke: #020617; stroke-width: 0.4px; paint-order: stroke fill; stroke-linejoin: round;">NW</text>
                                     
                                     <!-- Raggi di Azimut e proiezioni Sole / Luna -->
                                     <g id="planisphereAzimuthRaysGroup" style="pointer-events: none;"></g>
