@@ -358,9 +358,9 @@ window.addEventListener('DOMContentLoaded', () => {
     }
 
     initDOM();
-    initTimeInputs();
     setupEventListeners();
     loadSavedSettings();
+    initializeObservingTime();
     
     // Rilevamento automatico disabilitato per evitare blocchi; si attiva solo premendo il pulsante
     updateGPSDisplay(false, "GPS Non Attivo (Manuale)");
@@ -370,11 +370,69 @@ window.addEventListener('DOMContentLoaded', () => {
     tick();
 });
 
-// Imposta gli input data/ora manuali sui valori correnti
+// Imposta gli input data/ora manuali sui valori correnti (compatibile con timezone locale)
 function initTimeInputs() {
     const now = new Date();
-    dom.inputDate.value = now.toISOString().split('T')[0];
-    dom.inputTime.value = now.toTimeString().split(' ')[0];
+    const year = now.getFullYear();
+    const month = String(now.getMonth() + 1).padStart(2, '0');
+    const day = String(now.getDate()).padStart(2, '0');
+    dom.inputDate.value = `${year}-${month}-${day}`;
+    const hrs = String(now.getHours()).padStart(2, '0');
+    const mins = String(now.getMinutes()).padStart(2, '0');
+    const secs = String(now.getSeconds()).padStart(2, '0');
+    dom.inputTime.value = `${hrs}:${mins}:${secs}`;
+}
+
+// Inizializza l'orario di osservazione: imposta l'ora del tramonto se non è ancora passata, altrimenti realtime
+function initializeObservingTime() {
+    const now = new Date();
+    const observer = new Astronomy.Observer(state.lat, state.lon, state.alt);
+    
+    let useSunset = false;
+    let sunsetDate = null;
+    
+    try {
+        const dateStart = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0);
+        const startAstroTime = Astronomy.MakeTime(dateStart);
+        const sunSet = Astronomy.SearchRiseSet(Astronomy.Body.Sun, observer, -1, startAstroTime, 1);
+        if (sunSet) {
+            sunsetDate = sunSet.date;
+            if (now < sunsetDate) {
+                useSunset = true;
+            }
+        }
+    } catch (e) {
+        console.error("Errore nel calcolo del tramonto iniziale:", e);
+    }
+    
+    if (useSunset && sunsetDate) {
+        state.isRealTime = false;
+        state.customDate = new Date(sunsetDate);
+        
+        // Sincronizza checkbox UI e mostra controlli manuali
+        if (dom.checkRealTime) {
+            dom.checkRealTime.checked = false;
+        }
+        if (dom.manualTimeInputs) {
+            dom.manualTimeInputs.style.display = 'block';
+        }
+        
+        // Sincronizza i valori degli input di testo data/ora manuali
+        syncManualTimeFromState();
+    } else {
+        state.isRealTime = true;
+        state.customDate = new Date(now);
+        
+        if (dom.checkRealTime) {
+            dom.checkRealTime.checked = true;
+        }
+        if (dom.manualTimeInputs) {
+            dom.manualTimeInputs.style.display = 'none';
+        }
+        
+        // Imposta gli input sul tempo reale corrente
+        initTimeInputs();
+    }
 }
 
 // Configura i listener degli eventi
