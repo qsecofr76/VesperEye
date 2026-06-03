@@ -258,12 +258,17 @@ const FALLBACK_ISS_TLE = {
 
 // Configurazione Corpi Minori e Pianeti Nani Selezionati (Plutone + Asteroidi Maggiori)
 const DWARF_PLANETS = [
-    { id: 'Pluto', name: 'Plutone', type: 'Pianeta Nano', color: '#fca5a5', useNative: true },
-    { id: 'Ceres', name: 'Cerere', type: 'Pianeta Nano', color: '#cbd5e1', useNative: false, elements: { a: 2.7674, e: 0.0789, i: 10.593, node: 80.255, peri: 73.422, M0: 95.865, n: 0.9856076686 / Math.pow(2.7674, 1.5) } },
-    { id: 'Vesta', name: 'Vesta', type: 'Asteroide', color: '#86efac', useNative: false, elements: { a: 2.3619, e: 0.0888, i: 7.140, node: 103.81, peri: 150.75, M0: 20.85, n: 0.9856076686 / Math.pow(2.3619, 1.5) } },
-    { id: 'Pallas', name: 'Pallade', type: 'Asteroide', color: '#93c5fd', useNative: false, elements: { a: 2.772, e: 0.231, i: 34.8, node: 173.1, peri: 310.2, M0: 107.5, n: 0.9856076686 / Math.pow(2.772, 1.5) } },
-    { id: 'Juno', name: 'Giunone', type: 'Asteroide', color: '#fda4af', useNative: false, elements: { a: 2.669, e: 0.258, i: 12.98, node: 169.9, peri: 248.1, M0: 35.2, n: 0.9856076686 / Math.pow(2.669, 1.5) } },
-    { id: 'Hygiea', name: 'Igea', type: 'Asteroide', color: '#a5f3fc', useNative: false, elements: { a: 3.136, e: 0.114, i: 3.84, node: 283.4, peri: 312.3, M0: 113.8, n: 0.9856076686 / Math.pow(3.136, 1.5) } }
+    { id: 'Pluto', name: 'Plutone', type: 'Pianeta Nano', color: '#fca5a5', useNative: true, H: 15.0, G: 0.15 },
+    { id: 'Ceres', name: 'Cerere', type: 'Pianeta Nano', color: '#cbd5e1', useNative: false, H: 3.34, G: 0.12, elements: { a: 2.7674, e: 0.0789, i: 10.593, node: 80.255, peri: 73.422, M0: 95.865, n: 0.9856076686 / Math.pow(2.7674, 1.5) } },
+    { id: 'Vesta', name: 'Vesta', type: 'Asteroide', color: '#86efac', useNative: false, H: 3.20, G: 0.32, elements: { a: 2.3619, e: 0.0888, i: 7.140, node: 103.81, peri: 150.75, M0: 20.85, n: 0.9856076686 / Math.pow(2.3619, 1.5) } },
+    { id: 'Pallas', name: 'Pallade', type: 'Asteroide', color: '#93c5fd', useNative: false, H: 4.13, G: 0.11, elements: { a: 2.772, e: 0.231, i: 34.8, node: 173.1, peri: 310.2, M0: 107.5, n: 0.9856076686 / Math.pow(2.772, 1.5) } },
+    { id: 'Juno', name: 'Giunone', type: 'Asteroide', color: '#fda4af', useNative: false, H: 5.33, G: 0.09, elements: { a: 2.669, e: 0.258, i: 12.98, node: 169.9, peri: 248.1, M0: 35.2, n: 0.9856076686 / Math.pow(2.669, 1.5) } },
+    { id: 'Astraea', name: 'Astrea', type: 'Asteroide', color: '#fef08a', useNative: false, H: 6.85, G: 0.15, elements: { a: 2.577, e: 0.1874, i: 5.36, node: 141.47, peri: 359.14, M0: 303.4, n: 0.9856076686 / Math.pow(2.577, 1.5) } },
+    { id: 'Hebe', name: 'Ebe', type: 'Asteroide', color: '#c084fc', useNative: false, H: 5.71, G: 0.15, elements: { a: 2.425, e: 0.2018, i: 14.77, node: 138.89, peri: 239.07, M0: 211.61, n: 0.9856076686 / Math.pow(2.425, 1.5) } },
+    { id: 'Iris', name: 'Iride', type: 'Asteroide', color: '#fb923c', useNative: false, H: 5.51, G: 0.15, elements: { a: 2.387, e: 0.2298, i: 5.52, node: 259.5, peri: 145.44, M0: 207.9, n: 0.9856076686 / Math.pow(2.387, 1.5) } },
+    { id: 'Flora', name: 'Flora', type: 'Asteroide', color: '#2dd4bf', useNative: false, H: 6.49, G: 0.15, elements: { a: 2.201, e: 0.1565, i: 5.89, node: 110.86, peri: 285.6, M0: 317.29, n: 0.9856076686 / Math.pow(2.201, 1.5) } },
+    { id: 'Metis', name: 'Metis', type: 'Asteroide', color: '#fb7185', useNative: false, H: 6.28, G: 0.15, elements: { a: 2.386, e: 0.122, i: 5.60, node: 110.5, peri: 5.3, M0: 275.8, n: 0.9856076686 / Math.pow(2.386, 1.5) } },
+    { id: 'Hygiea', name: 'Igea', type: 'Asteroide', color: '#a5f3fc', useNative: false, H: 6.75, G: 0.12, elements: { a: 3.136, e: 0.114, i: 3.84, node: 283.4, peri: 312.3, M0: 113.8, n: 0.9856076686 / Math.pow(3.136, 1.5) } }
 ];
 
 // Riferimenti DOM (Inizializzati in initDOM)
@@ -2719,6 +2724,8 @@ function calculateDwarfs() {
         let dec = 0;
         let isVisible = false;
         
+        let magnitude = null;
+        
         if (d.useNative) {
             try {
                 const equ = Astronomy.Equator(Astronomy.Body.Pluto, astroTime, observer, true, true);
@@ -2728,6 +2735,10 @@ function calculateDwarfs() {
                 ra = equ.ra;
                 dec = equ.dec;
                 isVisible = alt > 0;
+                
+                // Magnitudine di Plutone nativa da Astronomy Engine
+                const ill = Astronomy.Illumination(Astronomy.Body.Pluto, astroTime);
+                magnitude = ill.mag;
             } catch(e) {
                 console.error("Errore nel calcolo nativo di Plutone:", e);
             }
@@ -2790,6 +2801,25 @@ function calculateDwarfs() {
                 alt = hor.altitude;
                 az = hor.azimuth;
                 isVisible = alt > 0;
+                
+                // 9. Calcolo Magnitudine Apparente tramite formula standard H-G IAU
+                const r_dist = Math.hypot(x_hel, y_hel, z_hel); // Distanza Sole-Asteroide (r)
+                const delta_dist = Math.hypot(x_geo, y_geo, z_geo); // Distanza Terra-Asteroide (Delta)
+                
+                // Calcola l'angolo di fase solare (beta) usando la regola del coseno
+                // cos(beta) = (r^2 + Delta^2 - R_earth^2) / (2 * r * Delta)
+                const r_earth = Math.hypot(earthHel.x, earthHel.y, earthHel.z);
+                let cos_beta = (r_dist * r_dist + delta_dist * delta_dist - r_earth * r_earth) / (2 * r_dist * delta_dist);
+                // Limita cos_beta tra -1 e 1 per evitare errori di precisione numerica
+                cos_beta = Math.max(-1, Math.min(1, cos_beta));
+                const beta = Math.acos(cos_beta); // Angolo di fase in radianti
+                
+                // Funzioni di fase Φ1 e Φ2
+                const phi1 = Math.exp(-3.33 * Math.pow(Math.tan(beta / 2), 0.63));
+                const phi2 = Math.exp(-1.87 * Math.pow(Math.tan(beta / 2), 1.22));
+                
+                // Formula H-G
+                magnitude = d.H + 5 * Math.log10(r_dist * delta_dist) - 2.5 * Math.log10((1 - d.G) * phi1 + d.G * phi2);
             } catch(e) {
                 console.error(`Errore nel calcolo del corpo ${d.name}:`, e);
             }
@@ -2803,7 +2833,8 @@ function calculateDwarfs() {
                 alt: alt,
                 az: az,
                 ra: ra,
-                dec: dec
+                dec: dec,
+                mag: magnitude
             });
         }
     });
@@ -2825,6 +2856,7 @@ function calculateDwarfs() {
                     <tr>
                         <th>Corpo</th>
                         <th>Tipo</th>
+                        <th>Mag</th>
                         <th>Altezza (h)</th>
                         <th>Azimut</th>
                         <th>A.R.</th>
@@ -2836,6 +2868,7 @@ function calculateDwarfs() {
     
     visibleDwarfs.forEach(vd => {
         const cardDir = getCardinalDirection(vd.az);
+        const magText = vd.mag !== null ? vd.mag.toFixed(1) : '--';
         tableHtml += `
             <tr>
                 <td style="font-weight: 600; display: flex; align-items: center; gap: 0.5rem; height: 100%;">
@@ -2843,6 +2876,7 @@ function calculateDwarfs() {
                     ${vd.name}
                 </td>
                 <td style="color: var(--text-secondary); font-size: 0.72rem; font-weight: 500;">${vd.type}</td>
+                <td style="font-family: var(--font-mono); font-weight: bold; color: #fb7185;">${magText}</td>
                 <td style="font-family: var(--font-mono); font-weight: 600; color: #86efac;">${vd.alt.toFixed(2)}°</td>
                 <td style="font-family: var(--font-mono);">${vd.az.toFixed(1)}° (${cardDir})</td>
                 <td style="font-family: var(--font-mono); color: var(--text-secondary);">${formatRA(vd.ra)}</td>
