@@ -330,7 +330,7 @@ function initDOM() {
         filterGrid: document.getElementById('filterGrid'),
         filterPersonalAz: document.getElementById('filterPersonalAz'),
         inputPersonalAz: document.getElementById('inputPersonalAz'),
-        lnkGetFromWISTNS: document.getElementById('lnkGetFromWISTNS')
+        lnkSupernovaHunter: document.getElementById('lnkSupernovaHunter')
     };
     // Rimuovi o metti in sicurezza se gli elementi non esistono
     ctx = dom.moonsCanvas.getContext('2d');
@@ -1208,8 +1208,8 @@ function recalculate() {
     // 7. Aggiorna immagine delle macchie solari (Throttled)
     updateSunspots();
 
-    // 8. Aggiorna il link a GetFromWISTNS con i parametri correnti (GPS, Data e Ora)
-    if (dom.lnkGetFromWISTNS) {
+    // 8. Aggiorna il link a SupernovaHunter con i parametri correnti (GPS, Data e Ora)
+    if (dom.lnkSupernovaHunter) {
         const activeDate = getActiveDate();
         const year = activeDate.getFullYear();
         const month = String(activeDate.getMonth() + 1).padStart(2, '0');
@@ -1220,7 +1220,7 @@ function recalculate() {
         const mins = String(activeDate.getMinutes()).padStart(2, '0');
         const timeStr = `${hrs}:${mins}`;
         
-        dom.lnkGetFromWISTNS.href = `https://qsecofr76.github.io/GetFromWISTNS/?lat=${state.lat.toFixed(4)}&lon=${state.lon.toFixed(4)}&date=${dateStr}&time=${timeStr}`;
+        dom.lnkSupernovaHunter.href = `https://qsecofr76.github.io/SupernovaHunter/?lat=${state.lat.toFixed(4)}&lon=${state.lon.toFixed(4)}&date=${dateStr}&time=${timeStr}`;
     }
 }
 
