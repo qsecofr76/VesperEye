@@ -247,13 +247,23 @@ const state = {
     personalAzValue: 180
 };
 
-// Stato tracciamento ISS
+// Stato tracciamento ISS e Tiangong
 let issTle = null;
 let isTleFetching = false;
 const FALLBACK_ISS_TLE = {
-    line1: "1 25544U 98067A   26150.83995331  .00011335  00000+0  20978-3 0  9996",
-    line2: "2 25544  51.6338  25.9780 0007215 115.7878 244.3856 15.49504954569065",
-    header: "ISS (ZARYA)"
+    line1: "1 25544U 98067A   26154.55160867  .00014022  00000-0  25372-3 0  9993",
+    line2: "2 25544  51.6409  7.3375 0007559 123.6307 310.8711 15.49575191569634",
+    header: "ISS (ZARYA)",
+    tle_timestamp: 1780498732
+};
+
+let tiangongTle = null;
+let isTiangongTleFetching = false;
+const FALLBACK_TIANGONG_TLE = {
+    line1: "1 48274U 21035A   26154.56382103  .00017112  00000-0  20942-3 0  9997",
+    line2: "2 48274  41.4699  46.6092 0010065 316.0355  73.1905 15.60105315291041",
+    header: "CSS (TIANGONG)",
+    tle_timestamp: 1780503024
 };
 
 // Configurazione Corpi Minori e Pianeti Nani Selezionati (Plutone + Asteroidi Maggiori)
@@ -1200,11 +1210,11 @@ function recalculate() {
     updateMoonsPanel();
     drawMoons();
     
-    // 4. Calcola passaggi ISS
-    if (!issTle) {
-        fetchIssTle(calculateIssPasses);
+    // 4. Calcola passaggi Stazioni Spaziali
+    if (!issTle || !tiangongTle) {
+        fetchSatelliteTles(calculateSatellitePasses);
     } else {
-        calculateIssPasses();
+        calculateSatellitePasses();
     }
     
     // 5. Calcola visibilità Pianeti Nani e Asteroidi
@@ -2430,71 +2440,118 @@ function fetchIssTle(onComplete) {
         })
         .finally(() => {
             isTleFetching = false;
-            if (dom.issLoading) dom.issLoading.style.display = 'none';
             if (onComplete) onComplete();
         });
 }
 
-// Calcola i passaggi visibili della ISS nella finestra da 1 ora prima a 2.5 ore dopo il tramonto
-function calculateIssPasses() {
-    if (typeof satellite === 'undefined') {
-        if (dom.issError) {
-            dom.issError.innerText = "Attenzione: la libreria satellite.js non è caricata. Controlla la tua connessione internet.";
-            dom.issError.style.display = 'block';
+// Carica i dati TLE per Tiangong (con caching e fallback offline)
+function fetchTiangongTle(onComplete) {
+    if (tiangongTle) {
+        if (onComplete) onComplete();
+        return;
+    }
+    if (isTiangongTleFetching) {
+        const checkInterval = setInterval(() => {
+            if (tiangongTle) {
+                clearInterval(checkInterval);
+                if (onComplete) onComplete();
+            }
+        }, 100);
+        return;
+    }
+    
+    isTiangongTleFetching = true;
+    if (dom.issLoading) dom.issLoading.style.display = 'block';
+    if (dom.issError) dom.issError.style.display = 'none';
+    
+    const targetUrl = 'https://celestrak.org/NORAD/elements/gp.php?CATNR=48274';
+    const proxyUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent(targetUrl)}`;
+    
+    fetch(proxyUrl)
+        .then(response => {
+            if (!response.ok) throw new Error("HTTP error " + response.status);
+            return response.text();
+        })
+        .then(text => {
+            const lines = text.split('\n').map(l => l.trim()).filter(l => l.length > 0);
+            if (lines.length >= 2) {
+                let l1 = lines[0];
+                let l2 = lines[1];
+                let header = "CSS (TIANGONG)";
+                if (lines.length >= 3 && !lines[0].startsWith('1 ') && !lines[0].startsWith('2 ')) {
+                    header = lines[0];
+                    l1 = lines[1];
+                    l2 = lines[2];
+                }
+                
+                if (l1.startsWith('1 ') && l2.startsWith('2 ')) {
+                    const epochStr = l1.substring(18, 32).trim();
+                    let date = null;
+                    try {
+                        const year2d = parseInt(epochStr.substring(0, 2));
+                        const year = year2d < 57 ? 2000 + year2d : 1900 + year2d;
+                        const dayOfYear = parseFloat(epochStr.substring(2));
+                        const d = new Date(year, 0, 1);
+                        d.setDate(d.getDate() + (dayOfYear - 1));
+                        date = d;
+                    } catch(e) {}
+                    
+                    tiangongTle = {
+                        line1: l1,
+                        line2: l2,
+                        header: header,
+                        tle_timestamp: date ? Math.floor(date.getTime() / 1000) : Math.floor(Date.now() / 1000)
+                    };
+                    console.log("Tiangong TLE caricati con successo da API");
+                } else {
+                    throw new Error("Formato TLE non valido");
+                }
+            } else {
+                throw new Error("Dati TLE incompleti");
+            }
+        })
+        .catch(err => {
+            console.warn("Impossibile caricare TLE Tiangong da API. Uso TLE di fallback:", err);
+            tiangongTle = FALLBACK_TIANGONG_TLE;
+        })
+        .finally(() => {
+            isTiangongTleFetching = false;
+            if (onComplete) onComplete();
+        });
+}
+
+// Carica entrambi i satelliti ed esegue il callback al termine
+function fetchSatelliteTles(onComplete) {
+    let completed = 0;
+    const check = () => {
+        completed++;
+        if (completed === 2) {
+            if (dom.issLoading) dom.issLoading.style.display = 'none';
+            if (onComplete) onComplete();
         }
-        return;
-    }
-    if (!issTle) {
-        return;
-    }
-    
-    const observer = new Astronomy.Observer(state.lat, state.lon, state.alt);
-    const activeDate = getActiveDate();
-    
-    // Calcola il tramonto per trovare la finestra temporale corretta
-    const dateStart = new Date(activeDate.getFullYear(), activeDate.getMonth(), activeDate.getDate(), 0, 0, 0);
-    const startAstroTime = Astronomy.MakeTime(dateStart);
-    let sunsetEvent = null;
-    try {
-        sunsetEvent = Astronomy.SearchRiseSet(Astronomy.Body.Sun, observer, -1, startAstroTime, 1);
-    } catch (e) {
-        console.error("Errore nel calcolo del tramonto per ISS:", e);
-    }
-    
-    if (!sunsetEvent) {
-        if (dom.issContent) {
-            dom.issContent.innerHTML = `<div class="iss-no-passes">Impossibile calcolare l'ora del tramonto del Sole per la posizione attuale.</div>`;
-        }
-        return;
-    }
-    
-    const sunsetTime = sunsetEvent.date;
-    const startTime = new Date(sunsetTime.getTime() - 60 * 60 * 1000); // 1h prima
-    const endTime = new Date(sunsetTime.getTime() + 150 * 60 * 1000); // 2.5h dopo
+    };
+    fetchIssTle(check);
+    fetchTiangongTle(check);
+}
+
+// Helper per calcolare i passaggi di un singolo satellite
+function getSatellitePasses(tle, satName, observer, observerGd, startTime, endTime) {
+    if (!tle) return [];
     
     let satrec;
     try {
-        satrec = satellite.twoline2satrec(issTle.line1, issTle.line2);
+        satrec = satellite.twoline2satrec(tle.line1, tle.tle_timestamp ? tle.line2 : tle.line2); // Just format checking
+        satrec = satellite.twoline2satrec(tle.line1, tle.line2);
     } catch (e) {
-        console.error("Errore nel parsing del TLE:", e);
-        if (dom.issContent) {
-            dom.issContent.innerHTML = `<div class="iss-no-passes" style="color: #fca5a5;">Errore nel caricamento dei dati orbitali (TLE).</div>`;
-        }
-        return;
+        console.error(`Errore nel parsing del TLE per ${satName}:`, e);
+        return [];
     }
     
-    // Rileva i passaggi campionando ogni 10 secondi
     const stepSeconds = 10;
     const totalSteps = (endTime.getTime() - startTime.getTime()) / (stepSeconds * 1000);
     
     let passes = [];
     let currentPass = null;
-    
-    const observerGd = {
-        latitude: satellite.degreesToRadians(state.lat),
-        longitude: satellite.degreesToRadians(state.lon),
-        height: state.alt / 1000
-    };
     
     for (let i = 0; i <= totalSteps; i++) {
         const time = new Date(startTime.getTime() + i * stepSeconds * 1000);
@@ -2515,7 +2572,6 @@ function calculateIssPasses() {
         const azimuth = satellite.radiansToDegrees(lookAngles.azimuth);
         
         if (elevation > 0) {
-            // Verifica se il satellite è in ombra della Terra (eclissato) o illuminato
             let isIlluminated = true;
             try {
                 const astroTime = Astronomy.MakeTime(time);
@@ -2534,12 +2590,11 @@ function calculateIssPasses() {
                     const perp = Math.sqrt(satDist * satDist - dot * dot);
                     if (perp < 6371.0) isIlluminated = false;
                 }
-            } catch (e) {
-                // In caso di errore nel calcolo dell'eclisse, consideralo illuminato
-            }
+            } catch (e) {}
             
             if (!currentPass) {
                 currentPass = {
+                    satName: satName,
                     startTime: time,
                     endTime: time,
                     maxElevation: elevation,
@@ -2576,8 +2631,59 @@ function calculateIssPasses() {
         passes.push(currentPass);
     }
     
-    // Mostriamo solo passaggi con altezza max reale di almeno 5 gradi
-    passes = passes.filter(p => p.maxElevation >= 5);
+    return passes.filter(p => p.maxElevation >= 5);
+}
+
+// Calcola i passaggi visibili di ISS e Tiangong nella finestra da 1 ora prima a 2.5 ore dopo il tramonto
+function calculateSatellitePasses() {
+    if (typeof satellite === 'undefined') {
+        if (dom.issError) {
+            dom.issError.innerText = "Attenzione: la libreria satellite.js non è caricata. Controlla la tua connessione internet.";
+            dom.issError.style.display = 'block';
+        }
+        return;
+    }
+    if (!issTle && !tiangongTle) {
+        return;
+    }
+    
+    const observer = new Astronomy.Observer(state.lat, state.lon, state.alt);
+    const activeDate = getActiveDate();
+    
+    // Calcola il tramonto per trovare la finestra temporale corretta
+    const dateStart = new Date(activeDate.getFullYear(), activeDate.getMonth(), activeDate.getDate(), 0, 0, 0);
+    const startAstroTime = Astronomy.MakeTime(dateStart);
+    let sunsetEvent = null;
+    try {
+        sunsetEvent = Astronomy.SearchRiseSet(Astronomy.Body.Sun, observer, -1, startAstroTime, 1);
+    } catch (e) {
+        console.error("Errore nel calcolo del tramonto per stazioni spaziali:", e);
+    }
+    
+    if (!sunsetEvent) {
+        if (dom.issContent) {
+            dom.issContent.innerHTML = `<div class="iss-no-passes">Impossibile calcolare l'ora del tramonto del Sole per la posizione attuale.</div>`;
+        }
+        return;
+    }
+    
+    const sunsetTime = sunsetEvent.date;
+    const startTime = new Date(sunsetTime.getTime() - 60 * 60 * 1000); // 1h prima
+    const endTime = new Date(sunsetTime.getTime() + 150 * 60 * 1000); // 2.5h dopo
+    
+    const observerGd = {
+        latitude: satellite.degreesToRadians(state.lat),
+        longitude: satellite.degreesToRadians(state.lon),
+        height: state.alt / 1000
+    };
+    
+    // Calcola passaggi per ISS e Tiangong
+    const issPasses = getSatellitePasses(issTle, 'ISS', observer, observerGd, startTime, endTime);
+    const tgPasses = getSatellitePasses(tiangongTle, 'Tiangong', observer, observerGd, startTime, endTime);
+    
+    // Unisci e ordina per ora di inizio
+    let passes = [...issPasses, ...tgPasses];
+    passes.sort((a, b) => a.startTime.getTime() - b.startTime.getTime());
     
     function getCardinalDirection(deg) {
         const idx = Math.floor(((deg + 22.5) % 360) / 45);
@@ -2597,7 +2703,7 @@ function calculateIssPasses() {
                     <circle cx="12" cy="12" r="10"></circle>
                     <line x1="8" y1="12" x2="16" y2="12"></line>
                 </svg>
-                <p style="font-weight: 500;">Nessun passaggio della ISS sopra l'orizzonte (alt &gt; 5°) nella finestra selezionata.</p>
+                <p style="font-weight: 500;">Nessun passaggio della ISS o di Tiangong sopra l'orizzonte (alt &gt; 5°) nella finestra selezionata.</p>
                 <span style="font-size: 0.75rem; opacity: 0.6; margin-top: 6px; display: block; font-family: var(--font-mono);">
                     Finestra analizzata: dalle ${formatTime(startTime)} alle ${formatTime(endTime)}
                 </span>
@@ -2609,7 +2715,7 @@ function calculateIssPasses() {
                 <table class="iss-table" style="table-layout: auto; width: 100%;">
                     <thead>
                         <tr>
-                            <th>Ora (Iniz / Max)</th>
+                            <th>Stazione / Ora (Iniz / Max)</th>
                             <th>Altezza & Rotta</th>
                             <th>Visibilità</th>
                         </tr>
@@ -2619,7 +2725,7 @@ function calculateIssPasses() {
         
         passes.forEach(p => {
             const isAfterSunset = p.maxElevationTime.getTime() > sunsetTime.getTime();
-            // ISS è visibile se è illuminata dal Sole e l'osservatore è dopo il tramonto (cielo scuro)
+            // Il satellite è visibile se è illuminato dal Sole e l'osservatore è dopo il tramonto (cielo scuro)
             const visible = p.maxElevationIlluminated && isAfterSunset;
             
             const visBadgeClass = visible ? 'iss-vis-yes' : 'iss-vis-no';
@@ -2634,9 +2740,16 @@ function calculateIssPasses() {
             const peakCard = getCardinalDirection(p.maxElevationAzimuth);
             const endCard = getCardinalDirection(p.endAzimuth);
             
+            const satColor = p.satName === 'ISS' ? '#38bdf8' : '#fb923c';
+            
             html += `
                 <tr>
                     <td class="iss-time-cell" style="padding: 0.6rem 0.5rem;">
+                        <div style="display: flex; align-items: center; gap: 0.35rem; margin-bottom: 4px;">
+                            <span class="satellite-badge" style="background: ${satColor}; color: #000; padding: 0.05rem 0.3rem; border-radius: 4px; font-size: 0.65rem; font-weight: 800; text-transform: uppercase;">
+                                ${p.satName}
+                            </span>
+                        </div>
                         <div style="font-size: 0.72rem; color: var(--text-secondary); font-family: var(--font-mono);">Iniz: ${formatTime(p.startTime)}</div>
                         <div style="color: #38bdf8; font-weight: 700; font-size: 0.82rem; margin-top: 1px; font-family: var(--font-mono);">Max: ${formatTime(p.maxElevationTime)}</div>
                     </td>
@@ -2669,11 +2782,20 @@ function calculateIssPasses() {
         `;
     }
     
+    let infoHtml = '';
     if (issTle) {
         const tleTimestamp = issTle.tle_timestamp ? new Date(issTle.tle_timestamp * 1000).toLocaleDateString('it-IT') : 'Recente';
+        infoHtml += `Dati orbitali ISS (TLE) aggiornati al: <strong>${tleTimestamp}</strong> ${issTle.header === 'ISS (ZARYA)' ? '(Fallback locale)' : '(API Live)'}`;
+    }
+    if (tiangongTle) {
+        const tgTimestamp = tiangongTle.tle_timestamp ? new Date(tiangongTle.tle_timestamp * 1000).toLocaleDateString('it-IT') : 'Recente';
+        if (infoHtml) infoHtml += '<br>';
+        infoHtml += `Dati orbitali Tiangong (TLE) aggiornati al: <strong>${tgTimestamp}</strong> ${tiangongTle.header === 'CSS (TIANGONG)' ? '(Fallback locale)' : '(API Live)'}`;
+    }
+    if (infoHtml) {
         html += `
-            <div class="iss-tle-info">
-                Dati orbitali ISS (TLE) aggiornati al: <strong>${tleTimestamp}</strong> ${issTle.header === 'ISS (ZARYA)' ? '(Fallback locale)' : '(API Live)'}
+            <div class="iss-tle-info" style="line-height: 1.4;">
+                ${infoHtml}
             </div>
         `;
     }
