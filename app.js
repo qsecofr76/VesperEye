@@ -664,6 +664,17 @@ function setupEventListeners() {
     // Gestione ridimensionamento Canvas
     window.addEventListener('resize', resizeCanvas);
 
+    // Gestione toggle Console Debug Comete COBS
+    const btnCometsDebugToggle = document.getElementById('btnCometsDebugToggle');
+    const cometsDebugContainer = document.getElementById('cometsDebugContainer');
+    if (btnCometsDebugToggle && cometsDebugContainer) {
+        btnCometsDebugToggle.addEventListener('click', () => {
+            const isCollapsed = cometsDebugContainer.style.display === 'none';
+            cometsDebugContainer.style.display = isCollapsed ? 'block' : 'none';
+            btnCometsDebugToggle.textContent = isCollapsed ? 'Nascondi Console Debug API COBS' : 'Mostra Console Debug API COBS';
+        });
+    }
+
     // Listener per la Mappa Geografica in Trasparenza
     if (dom.checkMapActive) {
         dom.checkMapActive.addEventListener('change', (e) => {
@@ -3398,6 +3409,16 @@ function fetchComets() {
     const targetUrl = `https://cobs.si/api/planner.api?lat=${state.lat}&long=${state.lon}&alt=${state.alt}&date=${formattedDate}&lim_mag=15`;
     const proxyUrl = `https://api.codetabs.com/v1/proxy/?quest=${encodeURIComponent(targetUrl)}`;
     
+    // Scrivi log di avvio chiamata
+    const cometsDebugLog = document.getElementById('cometsDebugLog');
+    if (cometsDebugLog) {
+        const timestamp = new Date().toLocaleTimeString();
+        cometsDebugLog.value += `[${timestamp}] Richiesta comete per lat=${state.lat}, lon=${state.lon}, alt=${state.alt}, date=${formattedDate}...\n`;
+        cometsDebugLog.value += `[${timestamp}] URL target: ${targetUrl}\n`;
+        cometsDebugLog.value += `[${timestamp}] URL proxy: ${proxyUrl}\n`;
+        cometsDebugLog.scrollTop = cometsDebugLog.scrollHeight;
+    }
+    
     fetch(proxyUrl)
         .then(response => {
             if (!response.ok) {
@@ -3408,6 +3429,20 @@ function fetchComets() {
         .then(data => {
             isCometsFetching = false;
             if (cometsLoading) cometsLoading.style.display = 'none';
+            
+            const timestamp = new Date().toLocaleTimeString();
+            if (cometsDebugLog) {
+                cometsDebugLog.value += `[${timestamp}] Risposta ricevuta dal server proxy.\n`;
+                if (data && data.signature) {
+                    cometsDebugLog.value += `[${timestamp}] Signature API: ${JSON.stringify(data.signature)}\n`;
+                }
+                if (data && data.comet_list) {
+                    cometsDebugLog.value += `[${timestamp}] Trovate ${data.comet_list.length} comete totali stasera.\n`;
+                } else {
+                    cometsDebugLog.value += `[${timestamp}] Dati non validi o lista comete assente nella risposta: ${JSON.stringify(data).substring(0, 300)}...\n`;
+                }
+                cometsDebugLog.scrollTop = cometsDebugLog.scrollHeight;
+            }
             
             if (data && data.comet_list) {
                 // Registra successo, memorizza nella cache e salva i parametri
@@ -3426,6 +3461,12 @@ function fetchComets() {
             isCometsFetching = false;
             console.error(`Errore download comete (Tentativo ${cometsFetchAttempts}/${MAX_COMETS_FETCH_ATTEMPTS}):`, err);
             
+            const timestamp = new Date().toLocaleTimeString();
+            if (cometsDebugLog) {
+                cometsDebugLog.value += `[${timestamp}] ERRORE: ${err.message}\n`;
+                cometsDebugLog.scrollTop = cometsDebugLog.scrollHeight;
+            }
+            
             if (cometsLoading) cometsLoading.style.display = 'none';
             
             // Allerta l'utente solo se sono esauriti tutti i tentativi
@@ -3441,24 +3482,40 @@ function fetchComets() {
         });
 }
 
-// Utility per convertire Ascensione Retta (HH:MM:SS) in ore decimali
+// Utility tollerante per convertire Ascensione Retta in ore decimali
 function parseRAToHours(raStr) {
     if (!raStr) return 0;
-    const parts = raStr.split(':');
-    const h = parseFloat(parts[0] || 0);
-    const m = parseFloat(parts[1] || 0);
-    const s = parseFloat(parts[2] || 0);
+    // Rimuove lettere (h, m, s) o simboli, lasciando solo cifre/punti e convertendoli in separatori di coordinate
+    let cleaned = raStr.trim()
+        .replace(/[hmsHMS°'\"\,]/g, ' ')
+        .trim()
+        .replace(/\s+/g, ':');
+        
+    const parts = cleaned.split(':');
+    const h = parseFloat(parts[0]) || 0;
+    const m = parseFloat(parts[1]) || 0;
+    const s = parseFloat(parts[2]) || 0;
     return h + (m / 60) + (s / 3600);
 }
 
-// Utility per convertire Declinazione (DD:MM:SS) in gradi decimali (gestendo i valori negativi)
+// Utility tollerante per convertire Declinazione in gradi decimali (gestendo i valori negativi)
 function parseDecToDegrees(decStr) {
     if (!decStr) return 0;
     const isNegative = decStr.trim().startsWith('-');
-    const parts = decStr.split(':');
-    const d = Math.abs(parseFloat(parts[0] || 0));
-    const m = parseFloat(parts[1] || 0);
-    const s = parseFloat(parts[2] || 0);
+    let cleaned = decStr.trim();
+    if (isNegative) {
+        cleaned = cleaned.substring(1);
+    }
+    // Rimuove lettere (d, m, s) o simboli, lasciando solo cifre/punti e convertendoli in separatori di coordinate
+    cleaned = cleaned
+        .replace(/[dD°'\"\,]/g, ' ')
+        .trim()
+        .replace(/\s+/g, ':');
+        
+    const parts = cleaned.split(':');
+    const d = parseFloat(parts[0]) || 0;
+    const m = parseFloat(parts[1]) || 0;
+    const s = parseFloat(parts[2]) || 0;
     const val = d + (m / 60) + (s / 3600);
     return isNegative ? -val : val;
 }
