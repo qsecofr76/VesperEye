@@ -3589,7 +3589,7 @@ function updateCometsTable(cometList) {
                 
                 <div class="comet-card-stats">
                     <div class="comet-coord-box">
-                        <span class="coord-label" style="font-size: 0.65rem; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.3px;">Sorgere / Tramonto</span>
+                        <span class="coord-label" style="font-size: 0.65rem; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.3px;">Inizio / Fine Visibilità</span>
                         <span class="coord-val" style="font-size: 0.78rem; font-family: var(--font-mono); color: #fff; font-weight: 500;">${riseStr} / ${setStr}</span>
                     </div>
                     <div class="comet-coord-box">
