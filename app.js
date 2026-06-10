@@ -1,7 +1,455 @@
-/**
- * VesperEye - Logica e Motore di Calcolo Astronomico
- * Sviluppato per Roberto & Astrofili Ponte di Piave
- */
+// Configurazione Dizionario Traduzioni Multilingua (IT/EN)
+const TRANSLATIONS = {
+    it: {
+        "app-subtitle": "Calcolo visibilità pianeti, satelliti e passaggi stazioni spaziali in tempo reale",
+        "status-pos": "Stato Posizione",
+        "status-coords": "Coordinate",
+        "gps-manual": "GPS Non Attivo (Manuale)",
+        "gps-active": "GPS Rilevato (Browser)",
+        "config-title": "Impostazioni",
+        "config-observer-pos": "1. Posizione Osservatore",
+        "config-lat": "Latitudine (°)",
+        "config-lon": "Longitudine (°)",
+        "config-alt": "Altitudine (m s.l.m.)",
+        "config-city-preset": "Preset Città",
+        "config-city-detected": "📍 Rilevata/Manuale",
+        "config-gps-btn": "Rileva GPS Browser",
+        "config-datetime": "2. Data & Ora Osservazione",
+        "config-realtime": "Tempo Reale",
+        "config-date": "Data",
+        "config-time": "Ora Locale",
+        "config-btn-now": "Adesso",
+        "config-btn-sunset": "Tramonto",
+        "config-title-sub-hour": "-1 Ora",
+        "config-title-sunset": "Tramonto",
+        "config-title-add-hour": "+1 Ora",
+        "sun-moon-title": "Sole & Luna",
+        "sun-rise-az": "Alba / Az (Sole)",
+        "sun-set-az": "Tramonto / Az (Sole)",
+        "moon-rise-az": "Sorgere / Az (Luna)",
+        "moon-set-az": "Tramonto / Az (Luna)",
+        "sun-pos-current": "Pos. Attuale Sole (Alt/Az)",
+        "moon-pos-current": "Pos. Attuale Luna (Alt/Az)",
+        "sun-vis": "Visibilità Sole",
+        "moon-vis": "Visibilità Luna",
+        "moon-phase": "Stato della Luna",
+        "moon-illum": "Frazione Illuminata",
+        "tns-title": "Transienti & Supernovae (TNS)",
+        "tns-desc": "Localizza in tempo reale le nuove Supernovae, Novae e transienti extragalattici censiti dal Transient Name Server sopra il tuo orizzonte locale.",
+        "planets-title": "Stato di Visibilità dei Pianeti",
+        "moons-desc": "Posizione orbitale delle lune calcolata in tempo reale rispetto al disco planetario (vista telescopica raddrizzata, Est a sinistra).",
+        "moons-data-title": "Dati Satelliti",
+        "iss-title": "Passaggi Stazioni Spaziali (ISS &amp; Tiangong)",
+        "iss-desc": "Passaggi calcolati per la data corrente, da 1 ora prima a 2.5 ore dopo il tramonto locale.",
+        "iss-loading": "Caricamento dei dati orbitali (TLE) e calcolo passaggi in corso...",
+        "dwarfs-title": "Pianeti Nani &amp; Asteroidi Visibili",
+        "dwarfs-desc": "Corpi minori e pianeti nani del Sistema Solare attualmente visibili sopra l'orizzonte (alt &gt; 0°). Esclusi i corpi transnettuniani minori ad eccezione di Plutone.",
+        "comets-title": "Comete Visibili della Serata",
+        "comets-desc": "Comete visibili stasera (limite mag &lt; 15) calcolate per la tua posizione. Nota: Gli orari di Sorgere / Tramonto e Ora Migliore si riferiscono alla finestra osservativa della serata (tra il crepuscolo nautico e il sorgere/tramonto reale o la discesa sotto i 10° di altezza).",
+        "comets-loading": "Caricamento dei dati osservativi delle comete da COBS.si in corso...",
+        "comets-debug-btn": "Mostra Console Debug API COBS",
+        "comets-debug-log-title": "COBS PLANNER INTERCEPTOR LOG",
+        "comets-debug-clear": "Cancella",
+        "planisphere-title": "Planisfero Celeste (Volta Stellata)",
+        "compass-btn": "Bussola Reale",
+        "map-background": "Mappa di Sfondo",
+        "map-type": "Tipo:",
+        "map-type-dark": "Siderale Dark",
+        "map-type-satellite": "Satellite Reale",
+        "map-lock-rotation": "Centratura X Y:",
+        "map-lock-rotation-title": "Blocca rotazione del cielo e permette il trascinamento della mappa con il mouse per regolare di precisione la posizione",
+        "map-elements": "Elementi Visibili:",
+        "filter-stars": "Stelle",
+        "filter-constellations": "Costellazioni",
+        "filter-planets": "Pianeti",
+        "filter-comets": "Comete",
+        "filter-rays": "Linee Alba/Tramonto",
+        "filter-grid": "Griglia Celeste",
+        "filter-personal-az": "Azimut Personale",
+        "legend-stars": "Stelle Maggiori",
+        "legend-constellations": "Costellazioni",
+        "legend-planets": "Pianeti Visibili",
+        "legend-comets": "Comete Visibili",
+        "sunspots-title": "Attività Solare &amp; Macchie Solari",
+        "sunspots-desc": "Immagini del disco solare in tempo reale dal satellite NASA SDO in diverse lunghezze d'onda per il monitoraggio simultaneo di fotosfera e cromosfera.",
+        "sunspots-h4": "☀️ Fotosfera &amp; Cromosfera in tempo reale:",
+        "sunspots-paragraph": "Il monitoraggio simultaneo del Sole in diverse lunghezze d'onda svela la complessa attività magnetica. La Fotosfera (HMI) mostra le macchie solari fredde, mentre la Cromosfera (AIA 304 Å) in estremo ultravioletto rivela le spettacolari protuberanze solari, i filamenti e le immense arcate di plasma caldo sospese sui campi magnetici.",
+        "sunspots-portal-btn": "Portale Dati SDO NASA",
+        "sunspots-photosphere": "Fotosfera (Macchie Solari)",
+        "sunspots-chromosphere": "Cromosfera (Protuberanze)",
+        "footer-developed": "Sviluppato da Roberto - Astrofili Ponte di Piave (www.astrofilipontedipiave.it)",
+        "footer-accuracy": "Accuratezza garantita da Astronomy Engine &amp; satellite.js",
+        
+        // Dynamic labels IT
+        "vis-yes": "SÌ (Visibile)",
+        "vis-no": "NO (Sotto orizz.)",
+        "vis-yes-sun": "SÌ (Visibile) ☀️",
+        "vis-yes-moon": "SÌ (Visibile) 🌕",
+        "vis-yes-planet": "Visibile",
+        "vis-no-planet": "Non Visibile",
+        "moon-p-new": "Luna Nuova 🌑",
+        "moon-p-full": "Luna Piena 🌕",
+        "moon-p-wax-cres": "Luna Crescente 🌒",
+        "moon-p-first-q": "Primo Quarto 🌓",
+        "moon-p-wax-gib": "Gibbosa Crescente 🌔",
+        "moon-p-wan-gib": "Gibbosa Calante 🌖",
+        "moon-p-third-q": "Ultimo Quarto 🌗",
+        "moon-p-wan-cres": "Luna Calante 🌘",
+        
+        "moons-seq-label": "↔️ Sequenza Sinistra ➔ Destra (Est ➔ Ovest)",
+        "moons-jupiter-title": "Satelliti Galileiani di Giove",
+        "moons-saturn-title": "Satelliti Principali di Saturno",
+        "moons-uranus-title": "Satelliti Principali di Urano",
+        "direction-E": "Est",
+        "direction-W": "Ovest",
+        "direction-Est": "Est",
+        "direction-Ovest": "Ovest",
+        
+        "iss-hdr-station": "Stazione / Ora (Iniz / Max)",
+        "iss-hdr-route": "Altezza & Rotta",
+        "iss-hdr-visibility": "Visibilità",
+        "iss-lbl-start": "Iniz",
+        "iss-lbl-max": "Max",
+        "iss-badge-visible": "✨ Visibile",
+        "iss-badge-shadow": "🌑 Ombra",
+        "iss-badge-daylight": "☀️ Diurna",
+        "iss-sub-dark": "Cielo scuro",
+        "iss-sub-bright": "Cielo chiaro",
+        "iss-sub-eclipsed": "Eclissata",
+        "iss-tle-updated-iss": "Dati orbitali ISS (TLE) aggiornati al:",
+        "iss-tle-updated-tg": "Dati orbitali Tiangong (TLE) aggiornati al:",
+        "iss-tle-fallback": "(Fallback locale)",
+        "iss-tle-live": "(API Live)",
+        "iss-tle-recent": "Recente",
+        "iss-no-passes-empty": "Nessun passaggio della ISS o di Tiangong sopra l'orizzonte (alt &gt; 5°) nella finestra selezionata.",
+        "iss-time-window": "Finestra analizzata: dalle ${t1} alle ${t2}",
+        
+        "dw-hdr-body": "Corpo",
+        "dw-hdr-type": "Tipo",
+        "dw-hdr-mag": "Mag",
+        "dw-hdr-alt": "Altezza (h)",
+        "dw-hdr-az": "Azimut",
+        "dw-hdr-ra": "A.R.",
+        "dw-hdr-dec": "Decl.",
+        "dw-empty": "Nessun corpo minore attualmente visibile sopra l'orizzonte per questa posizione e data.",
+        
+        "comets-lbl-visibility-window": "Inizio / Fine Visibilità",
+        "comets-lbl-best-time": "Ora Migliore (Alt Max)",
+        "comets-lbl-current-pos": "Pos. Attuale (Alt / Az)",
+        "comets-attribution": "Dati comete per gentile concessione del Comet Observation Database",
+        "comets-empty": "Nessuna cometa visibile stasera sotto magnitudine 15.",
+        "comets-error-load": "Impossibile caricare le comete (connessione a COBS.si fallita).",
+        "comets-error-conn": "Errore di connessione a COBS.si.",
+        
+        "gps-manual-input": "Inserimento manuale",
+        "gps-preset-prefix": "Preset:",
+        "config-summary-coords": "Coordinate",
+        "config-summary-realtime": "Reale ⚡",
+        "config-summary-manual": "Manuale 🕒",
+        
+        "Mercury": "Mercurio",
+        "Venus": "Venere",
+        "Earth": "Terra",
+        "Mars": "Marte",
+        "Jupiter": "Giove",
+        "Saturn": "Saturno",
+        "Uranus": "Urano",
+        "Neptune": "Nettuno",
+        "Pluto": "Plutone",
+        "Ceres": "Cerere",
+        "Vesta": "Vesta",
+        "Pallas": "Pallade",
+        "Juno": "Giunone",
+        "Astraea": "Astrea",
+        "Hebe": "Ebe",
+        "Iris": "Iride",
+        "Flora": "Flora",
+        "Metis": "Metis",
+        "Hygiea": "Igea",
+        
+        "Pianeta Nano": "Pianeta Nano",
+        "Asteroide": "Asteroide",
+        
+        "Ponte di Piave": "Ponte di Piave",
+        "Roma": "Roma",
+        "Milano": "Milano",
+        "Napoli": "Napoli",
+        "Torino": "Torino",
+        "Palermo": "Palermo",
+        "Cagliari": "Cagliari",
+        "Bari": "Bari",
+        
+        "Sirio": "Sirio",
+        "Vega": "Vega",
+        "Arturo": "Arturo",
+        "Rigel": "Rigel",
+        "Betelgeuse": "Betelgeuse",
+        "Procione": "Procione",
+        "Altair": "Altair",
+        "Deneb": "Deneb",
+        "Aldebaran": "Aldebaran",
+        "Polluce": "Polluce",
+        "Castore": "Castore",
+        "Antares": "Antares",
+        "Spica": "Spica",
+        "Stella Polare": "Stella Polare",
+        "tribute-paolo": "Dedicato alla memoria di Paolo Campaner, amico indimenticato, appassionato scopritore di supernove e fondatore del gruppo \"Astrofili Ponte di Piave\"",
+        "GPS Attivo": "GPS Attivo",
+        "GPS Non Rilevato": "GPS Non Rilevato",
+        "Caricato da memoria": "Caricato da memoria",
+        "Centratura X Y": "Centratura X Y",
+        "Non disponibile": "Non disponibile",
+        "Rilevamento in corso...": "Rilevamento in corso..."
+    },
+    en: {
+        "app-subtitle": "Real-time planet visibility, moon phases, satellite orbits, and space stations flyby calculator",
+        "status-pos": "Location Status",
+        "status-coords": "Coordinates",
+        "gps-manual": "GPS Not Active (Manual)",
+        "gps-active": "GPS Active (Browser)",
+        "config-title": "Settings",
+        "config-observer-pos": "1. Observer Location",
+        "config-lat": "Latitude (°)",
+        "config-lon": "Longitude (°)",
+        "config-alt": "Altitude (m a.s.l.)",
+        "config-city-preset": "City Presets",
+        "config-city-detected": "📍 Detected/Manual",
+        "config-gps-btn": "Detect Browser GPS",
+        "config-datetime": "2. Observation Date & Time",
+        "config-realtime": "Real Time",
+        "config-date": "Date",
+        "config-time": "Local Time",
+        "config-btn-now": "Now",
+        "config-btn-sunset": "Sunset",
+        "config-title-sub-hour": "-1 Hour",
+        "config-title-sunset": "Sunset",
+        "config-title-add-hour": "+1 Hour",
+        "sun-moon-title": "Sun & Moon",
+        "sun-rise-az": "Rise / Az (Sun)",
+        "sun-set-az": "Set / Az (Sun)",
+        "moon-rise-az": "Rise / Az (Moon)",
+        "moon-set-az": "Set / Az (Moon)",
+        "sun-pos-current": "Current Sun Pos. (Alt/Az)",
+        "moon-pos-current": "Current Moon Pos. (Alt/Az)",
+        "sun-vis": "Sun Visibility",
+        "moon-vis": "Moon Visibility",
+        "moon-phase": "Moon Phase",
+        "moon-illum": "Illuminated Fraction",
+        "tns-title": "Transients & Supernovae (TNS)",
+        "tns-desc": "Locate extragalactic Supernovae, Novae and transients cataloged by the Transient Name Server above your local horizon in real time.",
+        "planets-title": "Planet Visibility Status",
+        "moons-desc": "Orbital position of the moons calculated in real time relative to the planetary disk (rectified telescopic view, East to the left).",
+        "moons-data-title": "Satellite Data",
+        "iss-title": "Space Stations Flybys (ISS &amp; Tiangong)",
+        "iss-desc": "Calculated flybys for the current date, from 1 hour before to 2.5 hours after local sunset.",
+        "iss-loading": "Loading orbital data (TLE) and calculating flybys...",
+        "dwarfs-title": "Visible Dwarf Planets &amp; Asteroids",
+        "dwarfs-desc": "Minor bodies and dwarf planets of the Solar System currently visible above the horizon (alt &gt; 0°). Excludes minor trans-Neptunian bodies except Pluto.",
+        "comets-title": "Visible Comets of the Evening",
+        "comets-desc": "Comets visible tonight (limit mag &lt; 15) calculated for your position. Note: Rise / Set and Best Time refer to the evening observing window (between nautical twilight and actual rise/set or drop below 10° altitude).",
+        "comets-loading": "Loading comet observing data from COBS.si...",
+        "comets-debug-btn": "Show COBS API Debug Console",
+        "comets-debug-log-title": "COBS PLANNER INTERCEPTOR LOG",
+        "comets-debug-clear": "Clear",
+        "planisphere-title": "Celestial Planisphere (Starry Sky)",
+        "compass-btn": "Real Compass",
+        "map-background": "Background Map",
+        "map-type": "Type:",
+        "map-type-dark": "Celestial Dark",
+        "map-type-satellite": "Real Satellite",
+        "map-lock-rotation": "Center X Y:",
+        "map-lock-rotation-title": "Locks the rotation of the sky and allows dragging the map with the mouse for precise centering",
+        "map-elements": "Visible Elements:",
+        "filter-stars": "Stars",
+        "filter-constellations": "Constellations",
+        "filter-planets": "Planets",
+        "filter-comets": "Comets",
+        "filter-rays": "Rise/Set Lines",
+        "filter-grid": "Celestial Grid",
+        "filter-personal-az": "Personal Azimuth",
+        "legend-stars": "Major Stars",
+        "legend-constellations": "Constellations",
+        "legend-planets": "Visible Planets",
+        "legend-comets": "Visible Comets",
+        "sunspots-title": "Solar Activity &amp; Sunspots",
+        "sunspots-desc": "Real-time images of the solar disk from the NASA SDO satellite in different wavelengths for simultaneous monitoring of photosphere and chromosphere.",
+        "sunspots-h4": "☀️ Real-time Photosphere &amp; Chromosphere:",
+        "sunspots-paragraph": "Simultaneous solar monitoring in different wavelengths reveals complex magnetic activity. The Photosphere (HMI) reveals cool sunspots, while the Chromosphere (AIA 304 Å) in extreme ultraviolet reveals spectacular solar prominences, filaments, and massive hot plasma loops suspended over magnetic fields.",
+        "sunspots-portal-btn": "NASA SDO Data Portal",
+        "sunspots-photosphere": "Photosphere (Sunspots)",
+        "sunspots-chromosphere": "Chromosphere (Prominences)",
+        "footer-developed": "Developed by Roberto - Astrofili Ponte di Piave (www.astrofilipontedipiave.it)",
+        "footer-accuracy": "Accuracy guaranteed by Astronomy Engine &amp; satellite.js",
+        
+        // Dynamic labels EN
+        "vis-yes": "YES (Visible)",
+        "vis-no": "NO (Below horizon)",
+        "vis-yes-sun": "YES (Visible) ☀️",
+        "vis-yes-moon": "YES (Visible) 🌕",
+        "vis-yes-planet": "Visible",
+        "vis-no-planet": "Not Visible",
+        "moon-p-new": "New Moon 🌑",
+        "moon-p-full": "Full Moon 🌕",
+        "moon-p-wax-cres": "Waxing Crescent 🌒",
+        "moon-p-first-q": "First Quarter 🌓",
+        "moon-p-wax-gib": "Waxing Gibbous 🌔",
+        "moon-p-wan-gib": "Waning Gibbous 🌖",
+        "moon-p-third-q": "Third Quarter 🌗",
+        "moon-p-wan-cres": "Waning Crescent 🌘",
+        
+        "moons-seq-label": "↔️ Sequence Left ➔ Right (East ➔ West)",
+        "moons-jupiter-title": "Jupiter Galilean Moons",
+        "moons-saturn-title": "Saturn Major Moons",
+        "moons-uranus-title": "Uranus Major Moons",
+        "direction-E": "East",
+        "direction-W": "West",
+        "direction-Est": "East",
+        "direction-Ovest": "West",
+        
+        "iss-hdr-station": "Station / Time (Start / Max)",
+        "iss-hdr-route": "Altitude & Route",
+        "iss-hdr-visibility": "Visibility",
+        "iss-lbl-start": "Start",
+        "iss-lbl-max": "Max",
+        "iss-badge-visible": "✨ Visible",
+        "iss-badge-shadow": "🌑 Shadow",
+        "iss-badge-daylight": "☀️ Daylight",
+        "iss-sub-dark": "Dark sky",
+        "iss-sub-bright": "Bright sky",
+        "iss-sub-eclipsed": "Eclipsed",
+        "iss-tle-updated-iss": "ISS orbital data (TLE) updated to:",
+        "iss-tle-updated-tg": "Tiangong orbital data (TLE) updated to:",
+        "iss-tle-fallback": "(Local fallback)",
+        "iss-tle-live": "(Live API)",
+        "iss-tle-recent": "Recent",
+        "iss-no-passes-empty": "No visible passes for ISS or Tiangong above the horizon (alt &gt; 5°) in the selected window.",
+        "iss-time-window": "Analyzed window: from ${t1} to ${t2}",
+        
+        "dw-hdr-body": "Body",
+        "dw-hdr-type": "Type",
+        "dw-hdr-mag": "Mag",
+        "dw-hdr-alt": "Altitude (h)",
+        "dw-hdr-az": "Azimuth",
+        "dw-hdr-ra": "R.A.",
+        "dw-hdr-dec": "Decl.",
+        "dw-empty": "No minor bodies currently visible above the horizon for this position and date.",
+        
+        "comets-lbl-visibility-window": "Start / End Visibility",
+        "comets-lbl-best-time": "Best Time (Max Alt)",
+        "comets-lbl-current-pos": "Current Pos. (Alt / Az)",
+        "comets-attribution": "Comet data courtesy of the Comet Observation Database",
+        "comets-empty": "No visible comets tonight below magnitude 15.",
+        "comets-error-load": "Unable to load comets (COBS.si connection failed).",
+        "comets-error-conn": "COBS.si connection error.",
+        
+        "gps-manual-input": "Manual Input",
+        "gps-preset-prefix": "Preset:",
+        "config-summary-coords": "Coordinates",
+        "config-summary-realtime": "Realtime ⚡",
+        "config-summary-manual": "Manual 🕒",
+        
+        "Mercury": "Mercury",
+        "Venus": "Venus",
+        "Earth": "Earth",
+        "Mars": "Mars",
+        "Jupiter": "Jupiter",
+        "Saturn": "Saturn",
+        "Uranus": "Uranus",
+        "Neptune": "Neptune",
+        "Pluto": "Pluto",
+        "Ceres": "Ceres",
+        "Vesta": "Vesta",
+        "Pallas": "Pallas",
+        "Juno": "Juno",
+        "Astraea": "Astraea",
+        "Hebe": "Hebe",
+        "Iris": "Iris",
+        "Flora": "Flora",
+        "Metis": "Metis",
+        "Hygiea": "Hygiea",
+        
+        "Pianeta Nano": "Dwarf Planet",
+        "Asteroide": "Asteroid",
+        
+        "Ponte di Piave": "Ponte di Piave",
+        "Roma": "Rome",
+        "Milano": "Milan",
+        "Napoli": "Naples",
+        "Torino": "Turin",
+        "Palermo": "Palermo",
+        "Cagliari": "Cagliari",
+        "Bari": "Bari",
+        
+        "Sirio": "Sirius",
+        "Vega": "Vega",
+        "Arturo": "Arcturus",
+        "Rigel": "Rigel",
+        "Betelgeuse": "Betelgeuse",
+        "Procione": "Procyon",
+        "Altair": "Altair",
+        "Deneb": "Deneb",
+        "Aldebaran": "Aldebaran",
+        "Polluce": "Pollux",
+        "Castore": "Castor",
+        "Antares": "Antares",
+        "Spica": "Spica",
+        "Stella Polare": "Polaris",
+        "tribute-paolo": "Dedicated to the memory of Paolo Campaner, unforgotten friend, passionate supernova discoverer, and founder of the \"Astrofili Ponte di Piave\" group",
+        "GPS Attivo": "GPS Active",
+        "GPS Non Rilevato": "GPS Not Detected",
+        "Caricato da memoria": "Loaded from memory",
+        "Centratura X Y": "Center X Y",
+        "Non disponibile": "Not available",
+        "Rilevamento in corso...": "Detecting..."
+    }
+};
+
+// Funzione helper per ottenere la traduzione di una chiave
+function __(key) {
+    if (TRANSLATIONS[state.lang] && TRANSLATIONS[state.lang][key]) {
+        return TRANSLATIONS[state.lang][key];
+    }
+    return key;
+}
+
+// Funzione per tradurre tutti gli elementi statici della pagina
+function translatePage() {
+    document.querySelectorAll('[data-i18n]').forEach(el => {
+        const key = el.getAttribute('data-i18n');
+        if (TRANSLATIONS[state.lang] && TRANSLATIONS[state.lang][key]) {
+            el.innerHTML = TRANSLATIONS[state.lang][key];
+        }
+    });
+
+    document.querySelectorAll('[data-i18n-title]').forEach(el => {
+        const key = el.getAttribute('data-i18n-title');
+        if (TRANSLATIONS[state.lang] && TRANSLATIONS[state.lang][key]) {
+            el.setAttribute('title', TRANSLATIONS[state.lang][key]);
+        }
+    });
+
+    const btnIT = document.getElementById('btnLangIT');
+    const btnEN = document.getElementById('btnLangEN');
+    if (btnIT && btnEN) {
+        if (state.lang === 'it') {
+            btnIT.classList.add('active');
+            btnEN.classList.remove('active');
+        } else {
+            btnEN.classList.add('active');
+            btnIT.classList.remove('active');
+        }
+    }
+}
+
+// Funzione per impostare la lingua attiva
+function setLanguage(lang) {
+    if (lang === 'it' || lang === 'en') {
+        state.lang = lang;
+        localStorage.setItem('vespereye_lang', lang);
+        translatePage();
+        recalculate();
+    }
+}
 
 // Configurazione Città Italiane (Preset)
 const CITIES = {
@@ -213,6 +661,7 @@ const CONSTELLATIONS = [
 
 // Stato dell'applicazione
 const state = {
+    lang: localStorage.getItem('vespereye_lang') || (navigator.language && navigator.language.startsWith('en') ? 'en' : 'it'),
     lat: 45.716370,
     lon: 12.456541,
     alt: 12,
@@ -374,6 +823,7 @@ window.addEventListener('DOMContentLoaded', () => {
     }
 
     initDOM();
+    translatePage();
     setupEventListeners();
     loadSavedSettings();
     initializeObservingTime();
@@ -453,6 +903,16 @@ function initializeObservingTime() {
 
 // Configura i listener degli eventi
 function setupEventListeners() {
+    // Gestione pulsanti lingua
+    const btnIT = document.getElementById('btnLangIT');
+    const btnEN = document.getElementById('btnLangEN');
+    if (btnIT) {
+        btnIT.addEventListener('click', () => setLanguage('it'));
+    }
+    if (btnEN) {
+        btnEN.addEventListener('click', () => setLanguage('en'));
+    }
+
     // Toggle pannello collassabile delle Impostazioni (GPS + Data/Ora)
     const configTitle = document.getElementById('configTitle');
     const configPanelContent = document.getElementById('configPanelContent');
@@ -910,7 +1370,14 @@ function updateGPSDisplay(active, text) {
         dom.gpsIndicator.style.backgroundColor = '#f59e0b';
         dom.gpsIndicator.style.boxShadow = '0 0 8px #f59e0b';
     }
-    dom.gpsStatusText.innerText = text;
+    
+    let translatedText = __(text);
+    if (text && text.startsWith("Preset: ")) {
+        const cityName = text.substring("Preset: ".length);
+        translatedText = `${__("Preset:")} ${__(cityName)}`;
+    }
+    
+    dom.gpsStatusText.innerText = translatedText;
     dom.coordsDisplay.innerText = `${Math.abs(state.lat).toFixed(4)}° ${state.lat >= 0 ? 'N' : 'S'}, ${Math.abs(state.lon).toFixed(4)}° ${state.lon >= 0 ? 'E' : 'W'}`;
 }
 
@@ -1068,10 +1535,10 @@ function recalculate() {
         const sunVisEl = document.getElementById('sunVisVal');
         if (sunVisEl) {
             if (sunAlt > 0) {
-                sunVisEl.innerText = "SÌ (Visibile) ☀️";
+                sunVisEl.innerText = __("vis-yes-sun");
                 sunVisEl.style.color = "#f59e0b";
             } else {
-                sunVisEl.innerText = "NO (Sotto orizz.)";
+                sunVisEl.innerText = __("vis-no");
                 sunVisEl.style.color = "var(--text-muted)";
             }
         }
@@ -1092,10 +1559,10 @@ function recalculate() {
         const moonVisEl = document.getElementById('moonVisVal');
         if (moonVisEl) {
             if (moonAlt > 0) {
-                moonVisEl.innerText = "SÌ (Visibile) 🌕";
+                moonVisEl.innerText = __("vis-yes-moon");
                 moonVisEl.style.color = "#38bdf8";
             } else {
-                moonVisEl.innerText = "NO (Sotto orizz.)";
+                moonVisEl.innerText = __("vis-no");
                 moonVisEl.style.color = "var(--text-muted)";
             }
         }
@@ -1113,17 +1580,17 @@ function recalculate() {
         const isWaxing = illLater.phase_fraction > ill.phase_fraction;
         
         const frac = ill.phase_fraction;
-        let phaseName = 'Luna Nuova';
-        if (frac > 0.98) phaseName = 'Luna Piena 🌕';
-        else if (frac < 0.02) phaseName = 'Luna Nuova 🌑';
+        let phaseName = __("moon-p-new");
+        if (frac > 0.98) phaseName = __("moon-p-full");
+        else if (frac < 0.02) phaseName = __("moon-p-new");
         else if (isWaxing) {
-            if (frac < 0.48) phaseName = 'Luna Crescente 🌒';
-            else if (frac < 0.52) phaseName = 'Primo Quarto 🌓';
-            else phaseName = 'Gibbosa Crescente 🌔';
+            if (frac < 0.48) phaseName = __("moon-p-wax-cres");
+            else if (frac < 0.52) phaseName = __("moon-p-first-q");
+            else phaseName = __("moon-p-wax-gib");
         } else {
-            if (frac > 0.52) phaseName = 'Gibbosa Calante 🌖';
-            else if (frac > 0.48) phaseName = 'Ultimo Quarto 🌗';
-            else phaseName = 'Luna Calante 🌘';
+            if (frac > 0.52) phaseName = __("moon-p-wan-gib");
+            else if (frac > 0.48) phaseName = __("moon-p-third-q");
+            else phaseName = __("moon-p-wan-cres");
         }
         
         document.getElementById('moonPhaseVal').innerText = phaseName;
@@ -1161,10 +1628,12 @@ function recalculate() {
         if (p.id === 'Mercury') {
             try {
                 const el = Astronomy.Elongation(Astronomy.Body.Mercury, astroTime);
-                const elDir = el.visibility === 'evening' ? 'Est (Sera)' : 'Ovest (Mattina)';
+                const elDir = el.visibility === 'evening' 
+                    ? (state.lang === 'it' ? 'Est (Sera)' : 'East (Evening)') 
+                    : (state.lang === 'it' ? 'Ovest (Mattina)' : 'West (Morning)');
                 extraTimesHtml = `
                     <span style="grid-column: span 2; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 0.25rem; margin-bottom: 0.25rem; color: var(--color-venus); font-weight: 500;">
-                        Elongaz.: ${el.elongation.toFixed(1)}° ${elDir}
+                        ${state.lang === 'it' ? 'Elongaz.' : 'Elong.'}: ${el.elongation.toFixed(1)}° ${elDir}
                     </span>
                     <span>AR: ${formatRA(equ.ra)}</span>
                     <span>Dec: ${equ.dec.toFixed(2)}°</span>
@@ -1179,20 +1648,20 @@ function recalculate() {
                 <div class="planet-header">
                     <div class="planet-info">
                         <div class="planet-dot" style="background-color: ${p.color}"></div>
-                        <span class="planet-name">${p.name}</span>
+                        <span class="planet-name">${__(p.id)}</span>
                     </div>
                     <span class="visibility-badge ${isVisible ? 'visible' : 'invisible'}">
-                        ${isVisible ? 'Visibile' : 'Non Visibile'}
+                        ${isVisible ? __("vis-yes-planet") : __("vis-no-planet")}
                     </span>
                 </div>
                 
                 <div class="planet-coords">
                     <div class="coord-box">
-                        <span class="coord-label">Altezza</span>
+                        <span class="coord-label">${state.lang === 'it' ? 'Altezza' : 'Altitude'}</span>
                         <span class="coord-val">${alt.toFixed(2)}°</span>
                     </div>
                     <div class="coord-box">
-                        <span class="coord-label">Azimut</span>
+                        <span class="coord-label">${state.lang === 'it' ? 'Azimut' : 'Azimuth'}</span>
                         <span class="coord-val">${az.toFixed(1)}° (${cardDir})</span>
                     </div>
                 </div>
@@ -1252,9 +1721,10 @@ function recalculate() {
 
 // Converte gradi di azimut in direzione cardinale breve
 function getCardinalDirection(az) {
-    const directions = ['N', 'NNE', 'NE', 'ENE', 'E', 'ESE', 'SE', 'SSE', 'S', 'SSW', 'SW', 'WSW', 'W', 'WNW', 'NW', 'NNW'];
+    const directionsIT = ['N', 'NNE', 'NE', 'ENE', 'E', 'ESE', 'SE', 'SSE', 'S', 'SSO', 'SO', 'OSO', 'O', 'ONO', 'NO', 'NNO'];
+    const directionsEN = ['N', 'NNE', 'NE', 'ENE', 'E', 'ESE', 'SE', 'SSE', 'S', 'SSW', 'SW', 'WSW', 'W', 'WNW', 'NW', 'NNW'];
     const index = Math.round(((az % 360) / 22.5)) % 16;
-    return directions[index];
+    return state.lang === 'it' ? directionsIT[index] : directionsEN[index];
 }
 
 // Formatta Ascensione Retta da ore decimali a hh m s
@@ -1294,17 +1764,17 @@ function updateMoonsPanel() {
         if (state.selectedPlanet === 'Jupiter') {
             dom.selectedPlanetTitle.innerHTML = `
                 <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color: var(--color-jupiter)"><circle cx="12" cy="12" r="10"></circle><line x1="8" y1="15" x2="16" y2="15"></line><line x1="6" y1="9" x2="18" y2="9"></line></svg>
-                Satelliti Galileiani di Giove
+                ${__("moons-jupiter-title")}
             `;
         } else if (state.selectedPlanet === 'Saturn') {
             dom.selectedPlanetTitle.innerHTML = `
                 <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color: var(--color-saturn)"><circle cx="12" cy="12" r="8"></circle><path d="M2 12h20M5 15h14M8 9h8"></path></svg>
-                Satelliti Principali di Saturno
+                ${__("moons-saturn-title")}
             `;
         } else if (state.selectedPlanet === 'Uranus') {
             dom.selectedPlanetTitle.innerHTML = `
                 <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color: var(--color-uranus)"><circle cx="12" cy="12" r="10"></circle><path d="M12 2v22M2 12h20"></path></svg>
-                Satelliti Principali di Urano
+                ${__("moons-uranus-title")}
             `;
         }
     } else {
@@ -1521,7 +1991,7 @@ function renderJupiterSystem(cx, cy, w, h) {
         <div class="moon-legend-item" style="grid-column: span 2; background: rgba(255, 255, 255, 0.02);">
             <div style="display: flex; flex-direction: column; width: 100%;">
                 <span class="moon-legend-name" style="color: #67e8f9; font-weight: 600; font-size: 0.85rem;">
-                    ↔️ Sequenza Sinistra ➔ Destra (Est ➔ Ovest)
+                    ${__("moons-seq-label")}
                 </span>
                 <span style="font-family: var(--font-mono); font-size: 0.8rem; color: #fff; margin-top: 4px; letter-spacing: 0.5px;">
                     ${sequenceStr}
@@ -1532,7 +2002,7 @@ function renderJupiterSystem(cx, cy, w, h) {
 
     moons.forEach(m => {
         const mColor = moonColors[m.name] || '#fff';
-        const direction = m.x > 0 ? 'Est' : 'Ovest';
+        const direction = m.x > 0 ? __("direction-Est") : __("direction-Ovest");
         legendHtml += `
             <div class="moon-legend-item">
                 <span class="moon-legend-name">
@@ -2060,26 +2530,26 @@ function renderSaturnSystem(cx, cy, w, h) {
                     🪐 Angolo e Apertura degli Anelli
                 </span>
                 <span style="font-size: 0.8rem; color: #fff; margin-top: 2px;">
-                    Inclinazione anelli: <strong>${(satIllum.ring_tilt).toFixed(2)}°</strong> (Polo Nord rivolto a Terra)
+                    ${state.lang === 'it' ? 'Inclinazione anelli' : 'Ring tilt'}: <strong>${(satIllum.ring_tilt).toFixed(2)}°</strong> (${state.lang === 'it' ? 'Polo Nord rivolto a Terra' : 'North Pole tilted towards Earth'})
                 </span>
             </div>
         </div>
         <div class="moon-legend-item" style="grid-column: span 2; background: rgba(255, 255, 255, 0.02);">
-            <div style="display: flex; flex-direction: column; width: 100%;">
-                <span class="moon-legend-name" style="color: #67e8f9; font-weight: 600; font-size: 0.85rem;">
-                    ↔️ Sequenza Sinistra ➔ Destra (Est ➔ Ovest)
-                </span>
-                <span style="font-family: var(--font-mono); font-size: 0.8rem; color: #fff; margin-top: 4px; letter-spacing: 0.5px;">
-                    ${sequenceStr}
-                </span>
-            </div>
+             <div style="display: flex; flex-direction: column; width: 100%;">
+                 <span class="moon-legend-name" style="color: #67e8f9; font-weight: 600; font-size: 0.85rem;">
+                     ${__("moons-seq-label")}
+                 </span>
+                 <span style="font-family: var(--font-mono); font-size: 0.8rem; color: #fff; margin-top: 4px; letter-spacing: 0.5px;">
+                     ${sequenceStr}
+                 </span>
+             </div>
         </div>
     `;
 
     // Popoliamo la legenda con i dettagli orbitali per le lune principali
     projectedMoons.forEach(m => {
         if (['Enceladus', 'Tethys', 'Dione', 'Rhea', 'Titan'].includes(m.name)) {
-            const direction = m.x > 0 ? 'Ovest' : 'Est';
+            const direction = m.x > 0 ? __("direction-Ovest") : __("direction-Est");
             legendHtml += `
                 <div class="moon-legend-item">
                     <span class="moon-legend-name">
@@ -2323,19 +2793,19 @@ function renderUranusSystem(cx, cy, w, h) {
             </div>
         </div>
         <div class="moon-legend-item" style="grid-column: span 2; background: rgba(255, 255, 255, 0.02);">
-            <div style="display: flex; flex-direction: column; width: 100%;">
-                <span class="moon-legend-name" style="color: #67e8f9; font-weight: 600; font-size: 0.85rem;">
-                    ↔️ Sequenza Sinistra ➔ Destra (Est ➔ Ovest)
-                </span>
-                <span style="font-family: var(--font-mono); font-size: 0.8rem; color: #fff; margin-top: 4px; letter-spacing: 0.5px;">
-                    ${sequenceStr}
-                </span>
-            </div>
+             <div style="display: flex; flex-direction: column; width: 100%;">
+                 <span class="moon-legend-name" style="color: #67e8f9; font-weight: 600; font-size: 0.85rem;">
+                     ${__("moons-seq-label")}
+                 </span>
+                 <span style="font-family: var(--font-mono); font-size: 0.8rem; color: #fff; margin-top: 4px; letter-spacing: 0.5px;">
+                     ${sequenceStr}
+                 </span>
+             </div>
         </div>
     `;
 
     projectedMoons.forEach(m => {
-        const direction = m.x > 0 ? 'Ovest' : 'Est';
+        const direction = m.x > 0 ? __("direction-Ovest") : __("direction-Est");
         legendHtml += `
             <div class="moon-legend-item">
                 <span class="moon-legend-name">
@@ -2638,7 +3108,7 @@ function getSatellitePasses(tle, satName, observer, observerGd, startTime, endTi
 function calculateSatellitePasses() {
     if (typeof satellite === 'undefined') {
         if (dom.issError) {
-            dom.issError.innerText = "Attenzione: la libreria satellite.js non è caricata. Controlla la tua connessione internet.";
+            dom.issError.innerText = state.lang === 'it' ? "Attenzione: la libreria satellite.js non è caricata. Controlla la tua connessione internet." : "Warning: satellite.js library not loaded. Check your internet connection.";
             dom.issError.style.display = 'block';
         }
         return;
@@ -2662,7 +3132,7 @@ function calculateSatellitePasses() {
     
     if (!sunsetEvent) {
         if (dom.issContent) {
-            dom.issContent.innerHTML = `<div class="iss-no-passes">Impossibile calcolare l'ora del tramonto del Sole per la posizione attuale.</div>`;
+            dom.issContent.innerHTML = `<div class="iss-no-passes">${state.lang === 'it' ? "Impossibile calcolare l'ora del tramonto del Sole per la posizione attuale." : "Cannot calculate sunset time for current position."}</div>`;
         }
         return;
     }
@@ -2703,9 +3173,9 @@ function calculateSatellitePasses() {
                     <circle cx="12" cy="12" r="10"></circle>
                     <line x1="8" y1="12" x2="16" y2="12"></line>
                 </svg>
-                <p style="font-weight: 500;">Nessun passaggio della ISS o di Tiangong sopra l'orizzonte (alt &gt; 5°) nella finestra selezionata.</p>
+                <p style="font-weight: 500;">${__("iss-no-passes-empty")}</p>
                 <span style="font-size: 0.75rem; opacity: 0.6; margin-top: 6px; display: block; font-family: var(--font-mono);">
-                    Finestra analizzata: dalle ${formatTime(startTime)} alle ${formatTime(endTime)}
+                    ${__("iss-time-window").replace("${t1}", formatTime(startTime)).replace("${t2}", formatTime(endTime))}
                 </span>
             </div>
         `;
@@ -2715,9 +3185,9 @@ function calculateSatellitePasses() {
                 <table class="iss-table" style="table-layout: auto; width: 100%;">
                     <thead>
                         <tr>
-                            <th>Stazione / Ora (Iniz / Max)</th>
-                            <th>Altezza & Rotta</th>
-                            <th>Visibilità</th>
+                            <th>${__("iss-hdr-station")}</th>
+                            <th>${__("iss-hdr-route")}</th>
+                            <th>${__("iss-hdr-visibility")}</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -2729,8 +3199,8 @@ function calculateSatellitePasses() {
             const visible = p.maxElevationIlluminated && isAfterSunset;
             
             const visBadgeClass = visible ? 'iss-vis-yes' : 'iss-vis-no';
-            const visBadgeText = visible ? '✨ Visibile' : (isAfterSunset ? '🌑 Ombra' : '☀️ Diurna');
-            const visSubText = visible ? 'Cielo scuro' : (!isAfterSunset ? 'Cielo chiaro' : 'Eclissata');
+            const visBadgeText = visible ? __("iss-badge-visible") : (isAfterSunset ? __("iss-badge-shadow") : __("iss-badge-daylight"));
+            const visSubText = visible ? __("iss-sub-dark") : (!isAfterSunset ? __("iss-sub-bright") : __("iss-sub-eclipsed"));
             
             let elevClass = 'iss-elev-low';
             if (p.maxElevation >= 40) elevClass = 'iss-elev-high';
@@ -2750,8 +3220,8 @@ function calculateSatellitePasses() {
                                 ${p.satName}
                             </span>
                         </div>
-                        <div style="font-size: 0.72rem; color: var(--text-secondary); font-family: var(--font-mono);">Iniz: ${formatTime(p.startTime)}</div>
-                        <div style="color: #38bdf8; font-weight: 700; font-size: 0.82rem; margin-top: 1px; font-family: var(--font-mono);">Max: ${formatTime(p.maxElevationTime)}</div>
+                        <div style="font-size: 0.72rem; color: var(--text-secondary); font-family: var(--font-mono);">${__("iss-lbl-start")}: ${formatTime(p.startTime)}</div>
+                        <div style="color: #38bdf8; font-weight: 700; font-size: 0.82rem; margin-top: 1px; font-family: var(--font-mono);">${__("iss-lbl-max")}: ${formatTime(p.maxElevationTime)}</div>
                     </td>
                     <td style="padding: 0.6rem 0.5rem;">
                         <div style="display: flex; align-items: center; gap: 0.35rem; margin-bottom: 2px;">
@@ -2784,13 +3254,15 @@ function calculateSatellitePasses() {
     
     let infoHtml = '';
     if (issTle) {
-        const tleTimestamp = issTle.tle_timestamp ? new Date(issTle.tle_timestamp * 1000).toLocaleDateString('it-IT') : 'Recente';
-        infoHtml += `Dati orbitali ISS (TLE) aggiornati al: <strong>${tleTimestamp}</strong> ${issTle.header === 'ISS (ZARYA)' ? '(Fallback locale)' : '(API Live)'}`;
+        const tleTimestamp = issTle.tle_timestamp ? new Date(issTle.tle_timestamp * 1000).toLocaleDateString(state.lang === 'it' ? 'it-IT' : 'en-US') : (state.lang === 'it' ? 'Recente' : 'Recent');
+        const fallbackText = issTle.header === 'ISS (ZARYA)' ? __("iss-tle-fallback") : __("iss-tle-live");
+        infoHtml += `${__("iss-tle-updated-iss")} <strong>${tleTimestamp}</strong> ${fallbackText}`;
     }
     if (tiangongTle) {
-        const tgTimestamp = tiangongTle.tle_timestamp ? new Date(tiangongTle.tle_timestamp * 1000).toLocaleDateString('it-IT') : 'Recente';
+        const tgTimestamp = tiangongTle.tle_timestamp ? new Date(tiangongTle.tle_timestamp * 1000).toLocaleDateString(state.lang === 'it' ? 'it-IT' : 'en-US') : (state.lang === 'it' ? 'Recente' : 'Recent');
         if (infoHtml) infoHtml += '<br>';
-        infoHtml += `Dati orbitali Tiangong (TLE) aggiornati al: <strong>${tgTimestamp}</strong> ${tiangongTle.header === 'CSS (TIANGONG)' ? '(Fallback locale)' : '(API Live)'}`;
+        const fallbackText = tiangongTle.header === 'CSS (TIANGONG)' ? __("iss-tle-fallback") : __("iss-tle-live");
+        infoHtml += `${__("iss-tle-updated-tg")} <strong>${tgTimestamp}</strong> ${fallbackText}`;
     }
     if (infoHtml) {
         html += `
@@ -2964,7 +3436,7 @@ function calculateDwarfs() {
     if (visibleDwarfs.length === 0) {
         dom.dwarfsGrid.innerHTML = `
             <div class="iss-no-passes" style="padding: 1.5rem; font-size: 0.85rem;">
-                Nessun corpo minore attualmente visibile sopra l'orizzonte per questa posizione e data.
+                ${__("dw-empty")}
             </div>
         `;
         return;
@@ -2976,13 +3448,13 @@ function calculateDwarfs() {
             <table class="iss-table">
                 <thead>
                     <tr>
-                        <th>Corpo</th>
-                        <th>Tipo</th>
-                        <th>Mag</th>
-                        <th>Altezza (h)</th>
-                        <th>Azimut</th>
-                        <th>A.R.</th>
-                        <th>Decl.</th>
+                        <th>${__("dw-hdr-body")}</th>
+                        <th>${__("dw-hdr-type")}</th>
+                        <th>${__("dw-hdr-mag")}</th>
+                        <th>${__("dw-hdr-alt")}</th>
+                        <th>${__("dw-hdr-az")}</th>
+                        <th>${__("dw-hdr-ra")}</th>
+                        <th>${__("dw-hdr-dec")}</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -2995,9 +3467,9 @@ function calculateDwarfs() {
             <tr>
                 <td style="font-weight: 600; display: flex; align-items: center; gap: 0.5rem; height: 100%;">
                     <div class="planet-dot" style="width: 8px; height: 8px; background-color: ${vd.color}; box-shadow: 0 0 4px ${vd.color}; margin-right: 2px;"></div>
-                    ${vd.name}
+                    ${__(vd.name)}
                 </td>
-                <td style="color: var(--text-secondary); font-size: 0.72rem; font-weight: 500;">${vd.type}</td>
+                <td style="color: var(--text-secondary); font-size: 0.72rem; font-weight: 500;">${__(vd.type)}</td>
                 <td style="font-family: var(--font-mono); font-weight: bold; color: #fb7185;">${magText}</td>
                 <td style="font-family: var(--font-mono); font-weight: 600; color: #86efac;">${vd.alt.toFixed(2)}°</td>
                 <td style="font-family: var(--font-mono);">${vd.az.toFixed(1)}° (${cardDir})</td>
@@ -3054,15 +3526,15 @@ function updateConfigSummary() {
     const summaryText = document.getElementById('configSummaryText');
     if (!summaryText) return;
     
-    let cityText = "Coordinate";
+    let cityText = __("config-summary-coords");
     const cityKey = dom.selectCity ? dom.selectCity.value : 'current';
     if (cityKey && cityKey !== 'current' && CITIES[cityKey]) {
-        cityText = CITIES[cityKey].name;
+        cityText = __(CITIES[cityKey].name);
     } else if (state.lat && state.lon) {
         cityText = `${state.lat.toFixed(2)}°, ${state.lon.toFixed(2)}°`;
     }
     
-    const timeText = state.isRealTime ? "Reale ⚡" : "Manuale 🕒";
+    const timeText = state.isRealTime ? __("config-summary-realtime") : __("config-summary-manual");
     summaryText.innerText = `${cityText} • ${timeText}`;
 }
 
@@ -3551,7 +4023,7 @@ function fetchComets() {
         console.warn(`Raggiunto il limite di ${MAX_COMETS_FETCH_ATTEMPTS} tentativi falliti di download delle comete. Richiesta annullata.`);
         if (cometsLoading) cometsLoading.style.display = 'none';
         if (cometsContent && cometsContent.innerHTML === '') {
-            cometsContent.innerHTML = '<div class="iss-no-passes">Impossibile caricare le comete (connessione a COBS.si fallita).</div>';
+            cometsContent.innerHTML = `<div class="iss-no-passes">${__("comets-error-load")}</div>`;
         }
         return;
     }
@@ -3609,7 +4081,7 @@ function fetchComets() {
                 calculatePlanisphere();
             } else {
                 if (cometsContent) {
-                    cometsContent.innerHTML = '<div class="iss-no-passes">Nessuna cometa visibile stasera sotto magnitudine 15.</div>';
+                    cometsContent.innerHTML = `<div class="iss-no-passes">${__("comets-empty")}</div>`;
                 }
             }
         })
@@ -3628,11 +4100,11 @@ function fetchComets() {
             // Allerta l'utente solo se sono esauriti tutti i tentativi
             if (cometsFetchAttempts >= MAX_COMETS_FETCH_ATTEMPTS) {
                 if (cometsError) {
-                    cometsError.innerText = "Impossibile recuperare i dati delle comete da COBS.si dopo 3 tentativi. Controlla la tua connessione.";
+                    cometsError.innerText = state.lang === 'it' ? "Impossibile recuperare i dati delle comete da COBS.si dopo 3 tentativi. Controlla la tua connessione." : "Unable to retrieve comet data from COBS.si after 3 attempts. Check your connection.";
                     cometsError.style.display = 'block';
                 }
                 if (cometsContent) {
-                    cometsContent.innerHTML = '<div class="iss-no-passes">Errore di connessione a COBS.si.</div>';
+                    cometsContent.innerHTML = `<div class="iss-no-passes">${__("comets-error-conn")}</div>`;
                 }
             }
         });
@@ -3682,7 +4154,7 @@ function updateCometsTable(cometList) {
     if (!cometsContent) return;
 
     if (!cometList || cometList.length === 0) {
-        cometsContent.innerHTML = '<div class="iss-no-passes">Nessuna cometa visibile stasera sotto magnitudine 15.</div>';
+        cometsContent.innerHTML = `<div class="iss-no-passes">${__("comets-empty")}</div>`;
         return;
     }
 
@@ -3802,18 +4274,18 @@ function updateCometsTable(cometList) {
                 
                 <div class="comet-card-stats">
                     <div class="comet-coord-box">
-                        <span class="coord-label" style="font-size: 0.65rem; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.3px;">Inizio / Fine Visibilità</span>
+                        <span class="coord-label" style="font-size: 0.65rem; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.3px;">${__("comets-lbl-visibility-window")}</span>
                         <span class="coord-val" style="font-size: 0.78rem; font-family: var(--font-mono); color: #fff; font-weight: 500;">${riseStr} / ${setStr}</span>
                     </div>
                     <div class="comet-coord-box">
-                        <span class="coord-label" style="font-size: 0.65rem; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.3px;">Ora Migliore (Alt Max)</span>
+                        <span class="coord-label" style="font-size: 0.65rem; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.3px;">${__("comets-lbl-best-time")}</span>
                         <span class="coord-val" style="font-size: 0.78rem; font-family: var(--font-mono); color: #fff; font-weight: 500;">
                             <span style="color: #fff;">${bestTimeStr}</span> 
                             <span ${altColor}>(${altVal !== null ? altVal.toFixed(1) + '°' : '--'})</span>
                         </span>
                     </div>
                     <div class="comet-coord-box">
-                        <span class="coord-label" style="font-size: 0.65rem; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.3px;">Pos. Attuale (Alt / Az)</span>
+                        <span class="coord-label" style="font-size: 0.65rem; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.3px;">${__("comets-lbl-current-pos")}</span>
                         <span class="coord-val" style="font-size: 0.78rem; font-family: var(--font-mono); color: #fff; font-weight: 500;">${currentAltAzHtml}</span>
                     </div>
                 </div>
@@ -3824,7 +4296,7 @@ function updateCometsTable(cometList) {
     html += `
         </div>
         <p style="font-size: 0.72rem; color: var(--text-muted); text-align: right; margin-top: 0.75rem; border-top: 1px solid rgba(255,255,255,0.05); padding-top: 0.5rem; font-style: italic;">
-            Dati comete per gentile concessione del Comet Observation Database (<a href="https://cobs.si" target="_blank" style="color: #fda4af; text-decoration: none;">COBS.si</a>)
+            ${__("comets-attribution")} (<a href="https://cobs.si" target="_blank" style="color: #fda4af; text-decoration: none;">COBS.si</a>)
         </p>
     `;
 

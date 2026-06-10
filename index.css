@@ -1007,3 +1007,42 @@ footer {
         padding: 0.3rem 0.5rem;
     }
 }
+
+/* Selettore Lingua */
+.lang-selector {
+    display: flex;
+    gap: 0.35rem;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    padding: 0.25rem;
+    border-radius: 8px;
+    align-self: center;
+}
+
+.lang-btn {
+    width: auto !important;
+    padding: 0.25rem 0.6rem !important;
+    font-size: 0.75rem !important;
+    font-weight: 700 !important;
+    border-radius: 5px !important;
+    background: transparent !important;
+    border: 1px solid transparent !important;
+    color: var(--text-secondary) !important;
+    cursor: pointer !important;
+    transition: all 0.2s ease !important;
+    box-shadow: none !important;
+    transform: none !important;
+}
+
+.lang-btn:hover {
+    color: #fff !important;
+    background: rgba(255, 255, 255, 0.05) !important;
+    box-shadow: none !important;
+    transform: none !important;
+}
+
+.lang-btn.active {
+    background: linear-gradient(135deg, #7c3aed 0%, #a855f7 100%) !important;
+    border: 1px solid rgba(168, 85, 247, 0.3) !important;
+    color: #fff !important;
+}
