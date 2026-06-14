@@ -4035,7 +4035,7 @@ function fetchComets() {
     cometsFetchAttempts++;
     
     const targetUrl = `https://cobs.si/api/planner.api?lat=${state.lat}&long=${state.lon}&alt=${state.alt}&date=${formattedDate}&lim_mag=15`;
-    const proxyUrl = `https://api.codetabs.com/v1/proxy/?quest=${encodeURIComponent(targetUrl)}`;
+    const proxyUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent(targetUrl)}`;
     
     // Scrivi log di avvio chiamata
     const cometsDebugLog = document.getElementById('cometsDebugLog');
