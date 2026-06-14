@@ -3990,7 +3990,7 @@ let cometsFetchAttempts = 0;
 const MAX_COMETS_FETCH_ATTEMPTS = 3;
 
 // Scarica le comete visibili da COBS.si (con cache e limitatore di tentativi in caso di errore)
-function fetchComets() {
+async function fetchComets() {
     const cometsLoading = document.getElementById('cometsLoading');
     const cometsError = document.getElementById('cometsError');
     const cometsContent = document.getElementById('cometsContent');
@@ -4035,79 +4035,92 @@ function fetchComets() {
     cometsFetchAttempts++;
     
     const targetUrl = `https://cobs.si/api/planner.api?lat=${state.lat}&long=${state.lon}&alt=${state.alt}&date=${formattedDate}&lim_mag=15`;
-    const proxyUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent(targetUrl)}`;
+    
+    const PROXIES = [
+        (url) => `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`,
+        (url) => `https://corsproxy.io/?url=${encodeURIComponent(url)}`,
+        (url) => `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(url)}`
+    ];
     
     // Scrivi log di avvio chiamata
     const cometsDebugLog = document.getElementById('cometsDebugLog');
     if (cometsDebugLog) {
         const timestamp = new Date().toLocaleTimeString();
-        cometsDebugLog.value += `[${timestamp}] Richiesta comete per lat=${state.lat}, lon=${state.lon}, alt=${state.alt}, date=${formattedDate}...\n`;
+        cometsDebugLog.value += `[${timestamp}] Avvio richiesta comete con fallback...\n`;
         cometsDebugLog.value += `[${timestamp}] URL target: ${targetUrl}\n`;
-        cometsDebugLog.value += `[${timestamp}] URL proxy: ${proxyUrl}\n`;
         cometsDebugLog.scrollTop = cometsDebugLog.scrollHeight;
     }
     
-    fetch(proxyUrl)
-        .then(response => {
+    let success = false;
+    let data = null;
+    
+    for (let i = 0; i < PROXIES.length; i++) {
+        const proxyUrl = PROXIES[i](targetUrl);
+        const timestamp = new Date().toLocaleTimeString();
+        if (cometsDebugLog) {
+            cometsDebugLog.value += `[${timestamp}] [Tentativo ${i+1}/${PROXIES.length}] Richiesta tramite: ${proxyUrl}\n`;
+            cometsDebugLog.scrollTop = cometsDebugLog.scrollHeight;
+        }
+        
+        try {
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 12000); // 12s timeout per proxy
+            
+            const response = await fetch(proxyUrl, { signal: controller.signal });
+            clearTimeout(timeoutId);
+            
             if (!response.ok) {
                 throw new Error(`HTTP error! status: ${response.status}`);
             }
-            return response.json();
-        })
-        .then(data => {
-            isCometsFetching = false;
-            if (cometsLoading) cometsLoading.style.display = 'none';
             
-            const timestamp = new Date().toLocaleTimeString();
-            if (cometsDebugLog) {
-                cometsDebugLog.value += `[${timestamp}] Risposta ricevuta dal server proxy.\n`;
-                if (data && data.signature) {
-                    cometsDebugLog.value += `[${timestamp}] Signature API: ${JSON.stringify(data.signature)}\n`;
+            data = await response.json();
+            if (data && (data.comet_list || data.signature)) {
+                success = true;
+                if (cometsDebugLog) {
+                    const ts = new Date().toLocaleTimeString();
+                    cometsDebugLog.value += `[${ts}] Successo con proxy ${i+1}.\n`;
+                    cometsDebugLog.scrollTop = cometsDebugLog.scrollHeight;
                 }
-                if (data && data.comet_list) {
-                    cometsDebugLog.value += `[${timestamp}] Trovate ${data.comet_list.length} comete totali stasera.\n`;
-                } else {
-                    cometsDebugLog.value += `[${timestamp}] Dati non validi o lista comete assente nella risposta: ${JSON.stringify(data).substring(0, 300)}...\n`;
-                }
-                cometsDebugLog.scrollTop = cometsDebugLog.scrollHeight;
-            }
-            
-            if (data && data.comet_list) {
-                // Registra successo, memorizza nella cache e salva i parametri
-                cometsCache = data.comet_list;
-                lastCometsFetchParams = { lat: state.lat, lon: state.lon, date: formattedDate };
-                cometsFetchAttempts = 0; // Reset dei tentativi
-                updateCometsTable(data.comet_list);
-                calculatePlanisphere();
+                break;
             } else {
-                if (cometsContent) {
-                    cometsContent.innerHTML = `<div class="iss-no-passes">${__("comets-empty")}</div>`;
-                }
+                throw new Error("Formato dati non valido o vuoto");
             }
-        })
-        .catch(err => {
-            isCometsFetching = false;
-            console.error(`Errore download comete (Tentativo ${cometsFetchAttempts}/${MAX_COMETS_FETCH_ATTEMPTS}):`, err);
-            
-            const timestamp = new Date().toLocaleTimeString();
+        } catch (err) {
+            const ts = new Date().toLocaleTimeString();
+            console.warn(`Proxy ${i+1} fallito:`, err);
             if (cometsDebugLog) {
-                cometsDebugLog.value += `[${timestamp}] ERRORE: ${err.message}\n`;
+                cometsDebugLog.value += `[${ts}] Proxy ${i+1} fallito: ${err.message || err}\n`;
                 cometsDebugLog.scrollTop = cometsDebugLog.scrollHeight;
             }
-            
-            if (cometsLoading) cometsLoading.style.display = 'none';
-            
-            // Allerta l'utente solo se sono esauriti tutti i tentativi
-            if (cometsFetchAttempts >= MAX_COMETS_FETCH_ATTEMPTS) {
-                if (cometsError) {
-                    cometsError.innerText = state.lang === 'it' ? "Impossibile recuperare i dati delle comete da COBS.si dopo 3 tentativi. Controlla la tua connessione." : "Unable to retrieve comet data from COBS.si after 3 attempts. Check your connection.";
-                    cometsError.style.display = 'block';
-                }
-                if (cometsContent) {
-                    cometsContent.innerHTML = `<div class="iss-no-passes">${__("comets-error-conn")}</div>`;
-                }
+        }
+    }
+    
+    isCometsFetching = false;
+    if (cometsLoading) cometsLoading.style.display = 'none';
+    
+    if (success && data && data.comet_list) {
+        // Registra successo, memorizza nella cache e salva i parametri
+        cometsCache = data.comet_list;
+        lastCometsFetchParams = { lat: state.lat, lon: state.lon, date: formattedDate };
+        cometsFetchAttempts = 0; // Reset dei tentativi
+        updateCometsTable(data.comet_list);
+        calculatePlanisphere();
+    } else {
+        // Allerta l'utente solo se sono esauriti tutti i tentativi
+        if (cometsFetchAttempts >= MAX_COMETS_FETCH_ATTEMPTS) {
+            if (cometsError) {
+                cometsError.innerText = state.lang === 'it' ? "Impossibile recuperare i dati delle comete da COBS.si dopo 3 tentativi. Controlla la tua connessione." : "Unable to retrieve comet data from COBS.si after 3 attempts. Check your connection.";
+                cometsError.style.display = 'block';
             }
-        });
+            if (cometsContent) {
+                cometsContent.innerHTML = `<div class="iss-no-passes">${__("comets-error-conn")}</div>`;
+            }
+        } else {
+            if (cometsContent && cometsContent.innerHTML === '') {
+                cometsContent.innerHTML = `<div class="iss-no-passes">${__("comets-empty")}</div>`;
+            }
+        }
+    }
 }
 
 // Utility tollerante per convertire Ascensione Retta in ore decimali
